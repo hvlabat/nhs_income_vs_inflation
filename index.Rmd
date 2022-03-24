@@ -13,6 +13,8 @@ output:
 knitr::opts_chunk$set(fig.width=12,fig.height=8,echo=TRUE,
                       warning=FALSE,message=FALSE)
 ```
+You can find the repository for this project by [clicking here](https://github.com/hvlabat/nhs_income_vs_inflation).
+
 # Background
 Text
 
