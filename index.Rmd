@@ -1,0 +1,37 @@
+---
+title: "NHS Doctor Income vs Inflation Project"
+author: "Hugo Labat"
+date: "`r Sys.Date()`"
+output:
+  prettydoc::html_pretty:
+    theme: hpstr
+  pdf_document: default
+---
+```{r global-options, include=FALSE}
+#This sets a few defaults for this entire markdown, to make it visually constant
+#and to prevent messages and warnings without retyping the command.
+knitr::opts_chunk$set(fig.width=12,fig.height=8,echo=TRUE,
+                      warning=FALSE,message=FALSE)
+```
+# Background
+Text
+
+
+# Aims
+Text
+
+
+# Data Origins
+Text
+
+
+# Setting Up
+Text
+
+```{r libraries,warning=FALSE,message=FALSE}
+#Loading all necessary libraries
+library(tidyverse)
+library(here)
+```
+
+

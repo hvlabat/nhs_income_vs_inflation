@@ -1,8 +1,0 @@
----
-title: "nhs_incomve_vs_inflation_project"
-author: "Hugo Labat"
-date: "`r Sys.Date()`"
-output: html_document
----
-
-
