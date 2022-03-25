@@ -12,7 +12,7 @@
 
 <meta name="author" content="Hugo Labat" />
 
-<meta name="date" content="2022-03-24" />
+<meta name="date" content="2022-03-25" />
 
 <title>NHS Doctor Income vs Inflation Project</title>
 
@@ -152,7 +152,7 @@ a.sourceLine {
 <h1 class="title toc-ignore entry-title">NHS Doctor Income vs Inflation
 Project</h1>
 <h3 class="author">Hugo Labat</h3>
-<h3 class="date">2022-03-24</h3>
+<h3 class="date">2022-03-25</h3>
 </div><!-- /.header-title-wrap -->
 </header>
 
@@ -169,16 +169,94 @@ here</a>.</p>
 <h1>Aims</h1>
 <p>Text</p>
 </div>
-<div id="data-origins" class="section level1">
-<h1>Data Origins</h1>
-<p>Text</p>
-</div>
 <div id="setting-up" class="section level1">
 <h1>Setting Up</h1>
 <p>Text</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Loading all necessary libraries</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(here)</span></code></pre></div>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(here)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(pdftools)</span></code></pre></div>
+</div>
+<div id="data-origins" class="section level1">
+<h1>Data Origins</h1>
+<p>Text</p>
+<p>Mention how I didn’t include Jan-March 2007 data because they don’t
+separate specialist from staff grade incomes, thus it isn’t fair to
+compare. From April onwards they do, so I can compare them fairly.</p>
+<p>I chose the media FTE because, by the NHS’s account, it is a “more
+robust indicator of typical pay”</p>
+</div>
+<div id="data-preparation" class="section level1">
+<h1>Data Preparation</h1>
+<p>I created a function that would extract the required data from the 7
+pdf files of 2007-2008. It would have been faster to extract the
+information by hand, but I enjoyed the challenge and I learned a new
+skill.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Creating function to extract salary data from .pdf file</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>pdf_extract <span class="ot">&lt;-</span> <span class="cf">function</span>(raw){</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="co">#Splits single pages</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  raw <span class="ot">&lt;-</span> <span class="fu">map</span>(raw,<span class="sc">~</span><span class="fu">str_split</span>(.x,<span class="st">&quot;</span><span class="sc">\\</span><span class="st">n&quot;</span>) <span class="sc">%&gt;%</span> <span class="fu">unlist</span>())</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  <span class="co">#Concatenate split pages</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  raw <span class="ot">&lt;-</span> <span class="fu">reduce</span>(raw,c)</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>  <span class="co">#Specifying start and end of desired table</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>  table_start <span class="ot">&lt;-</span> stringr<span class="sc">::</span><span class="fu">str_which</span>(<span class="fu">tolower</span>(raw),<span class="st">&quot;foundation yr 1&quot;</span>)<span class="sc">-</span><span class="dv">1</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>  table_end <span class="ot">&lt;-</span> stringr<span class="sc">::</span><span class="fu">str_which</span>(<span class="fu">tolower</span>(raw),<span class="st">&quot;source&quot;</span>)<span class="sc">-</span><span class="dv">1</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>  table_end <span class="ot">&lt;-</span> table_end[<span class="fu">min</span>(<span class="fu">which</span>(table_end<span class="sc">&gt;</span>table_start))] <span class="co">#this is to make sure I get the right table</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>  <span class="co">#Creating a table &amp; removing the special characters</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>  table <span class="ot">&lt;-</span> raw[(table_start)<span class="sc">:</span>(table_end)]</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>  table <span class="ot">&lt;-</span> table <span class="sc">%&gt;%</span> <span class="fu">str_replace_all</span>(<span class="st">&quot;</span><span class="sc">\\</span><span class="st">s{2,}&quot;</span>,<span class="st">&quot;|&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>    <span class="fu">str_replace_all</span>(<span class="st">&quot;£&quot;</span>,<span class="st">&quot;&quot;</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>    <span class="fu">str_replace_all</span>(<span class="st">&quot;,&quot;</span>,<span class="st">&quot;&quot;</span>)</span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>  text_con <span class="ot">&lt;-</span> <span class="fu">textConnection</span>(table)</span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>  data_table <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(text_con,<span class="at">sep=</span><span class="st">&quot;|&quot;</span>)</span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>  <span class="co">#Extracting desired column and making numerical</span></span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>  data_table <span class="ot">&lt;-</span> data_table[<span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">4</span>)]</span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>  data_table <span class="ot">&lt;-</span> data_table <span class="sc">%&gt;%</span> <span class="fu">transform</span>(<span class="at">Salary.3=</span><span class="fu">as.numeric</span>(Salary<span class="fl">.3</span>))</span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>  <span class="co">#Merging consultant role salaries into one row; they occupy rows 4&amp;5</span></span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>  data_table[<span class="fu">c</span>(<span class="dv">4</span>,<span class="dv">5</span>),<span class="dv">2</span>] <span class="ot">&lt;-</span> <span class="fu">mean</span>(data_table[<span class="fu">c</span>(<span class="dv">4</span>,<span class="dv">5</span>),<span class="dv">2</span>])</span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>  data_table <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(data_table[<span class="fu">c</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>,<span class="dv">6</span><span class="sc">:</span><span class="dv">7</span>),<span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>)])</span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a>  <span class="co">#Now I&#39;ve merged the consultant salaries and will rename the rows, I don&#39;t need column 1</span></span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a>  salary <span class="ot">&lt;-</span> data_table[<span class="fu">c</span>(<span class="dv">2</span>)]</span>
+<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a>  <span class="co">#Changing row and column titles to be code-friendly</span></span>
+<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rownames</span>(salary) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;fy1&quot;</span>,<span class="st">&quot;fy2&quot;</span>,<span class="st">&quot;reg&quot;</span>,<span class="st">&quot;con&quot;</span>,<span class="st">&quot;spec&quot;</span>,<span class="st">&quot;staff&quot;</span>)</span>
+<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a>  <span class="fu">colnames</span>(salary) <span class="ot">&lt;-</span> <span class="st">&quot;median_salary&quot;</span></span>
+<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a>  <span class="co">#outputting end data frame, so it is useable by map_df</span></span>
+<span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a>  salary</span>
+<span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a>  <span class="co">#end of function</span></span>
+<span id="cb2-41"><a href="#cb2-41" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb2-42"><a href="#cb2-42" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-43"><a href="#cb2-43" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-44"><a href="#cb2-44" aria-hidden="true" tabindex="-1"></a><span class="co">#Creating a vector that contains a list of all the files in my pdf folder</span></span>
+<span id="cb2-45"><a href="#cb2-45" aria-hidden="true" tabindex="-1"></a>pdf_list <span class="ot">&lt;-</span> <span class="fu">list.files</span>(<span class="fu">here</span>(<span class="st">&quot;data&quot;</span>,<span class="st">&quot;raw&quot;</span>,<span class="st">&quot;pdf&quot;</span>))</span>
+<span id="cb2-46"><a href="#cb2-46" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-47"><a href="#cb2-47" aria-hidden="true" tabindex="-1"></a><span class="co">#creating arbitrary df as a master df for all data from all pdfs</span></span>
+<span id="cb2-48"><a href="#cb2-48" aria-hidden="true" tabindex="-1"></a>all_pdf_data <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">median_salary=</span><span class="fu">c</span>(<span class="cn">NA</span>,<span class="cn">NA</span>,<span class="cn">NA</span>,<span class="cn">NA</span>,<span class="cn">NA</span>,<span class="cn">NA</span>))</span>
+<span id="cb2-49"><a href="#cb2-49" aria-hidden="true" tabindex="-1"></a><span class="fu">rownames</span>(all_pdf_data) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;fy1&quot;</span>,<span class="st">&quot;fy2&quot;</span>,<span class="st">&quot;reg&quot;</span>,<span class="st">&quot;con&quot;</span>,<span class="st">&quot;spec&quot;</span>,<span class="st">&quot;staff&quot;</span>)</span>
+<span id="cb2-50"><a href="#cb2-50" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-51"><a href="#cb2-51" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-52"><a href="#cb2-52" aria-hidden="true" tabindex="-1"></a><span class="co">#For loop that works through the pdf files in my raw data</span></span>
+<span id="cb2-53"><a href="#cb2-53" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">c</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">length</span>(pdf_list))){</span>
+<span id="cb2-54"><a href="#cb2-54" aria-hidden="true" tabindex="-1"></a>  <span class="co">#Extracting pdf from folder and turns it into a string of text</span></span>
+<span id="cb2-55"><a href="#cb2-55" aria-hidden="true" tabindex="-1"></a>  raw_table <span class="ot">&lt;-</span> <span class="fu">map</span>(<span class="fu">here</span>(<span class="st">&quot;data&quot;</span>,<span class="st">&quot;raw&quot;</span>,<span class="st">&quot;pdf&quot;</span>,pdf_list[i]),pdf_text)</span>
+<span id="cb2-56"><a href="#cb2-56" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb2-57"><a href="#cb2-57" aria-hidden="true" tabindex="-1"></a>  <span class="co">#Applying pdf_extract function on raw data</span></span>
+<span id="cb2-58"><a href="#cb2-58" aria-hidden="true" tabindex="-1"></a>  salary_data <span class="ot">&lt;-</span> <span class="fu">map_df</span>(raw_table,pdf_extract)</span>
+<span id="cb2-59"><a href="#cb2-59" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb2-60"><a href="#cb2-60" aria-hidden="true" tabindex="-1"></a>  <span class="co">#Adding the looped salary_data to all_pdf_data</span></span>
+<span id="cb2-61"><a href="#cb2-61" aria-hidden="true" tabindex="-1"></a>  all_pdf_data[,i] <span class="ot">&lt;-</span> salary_data[,<span class="dv">1</span>]</span>
+<span id="cb2-62"><a href="#cb2-62" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb2-63"><a href="#cb2-63" aria-hidden="true" tabindex="-1"></a>  <span class="co">#changing the column names to match the data</span></span>
+<span id="cb2-64"><a href="#cb2-64" aria-hidden="true" tabindex="-1"></a>  <span class="fu">colnames</span>(all_pdf_data)[i] <span class="ot">&lt;-</span> <span class="fu">sub</span>(<span class="st">&quot;.pdf&quot;</span>,<span class="st">&quot;&quot;</span>,pdf_list[i])</span>
+<span id="cb2-65"><a href="#cb2-65" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
 </div>
 </div><!-- /.entry-content -->
 </article>
