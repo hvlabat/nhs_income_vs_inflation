@@ -1,81 +1,105 @@
-#I used this to test all my scripts prior to implementing them into my project
+#I used this to test my income vs inflation script prior to implementing it into my project
 
 
 #Loading all necessary libraries
 library(tidyverse)
 library(here)
-library(pdftools)
-library(data.table)
 
+#Extracting required data into data frame
+mean_salary_change_df <- read_csv(here("data","refined","mean_salary_change.csv"))
+cpih_df <- read_csv(here("data","refined","cpih_data.csv"))
+salary_change_df <- read_csv(here("data","refined","salary_change.csv"))
 
-#Creating function to extract salary data from .pdf file
-pdf_extract <- function(raw){
-  
-  #Splits single pages
-  raw <- map(raw,~str_split(.x,"\\n") %>% unlist())
-  
-  #Concatenate split pages
-  raw <- reduce(raw,c)
-  
-  #Specifying start and end of desired table
-  table_start <- stringr::str_which(tolower(raw),"foundation yr 1")-1
-  table_end <- stringr::str_which(tolower(raw),"source")-1
-  table_end <- table_end[min(which(table_end>table_start))] #this is to make sure I get the right table
-  
-  #Creating a table & removing the special characters
-  table <- raw[(table_start):(table_end)]
-  table <- table %>% str_replace_all("\\s{2,}","|") %>%
-    str_replace_all("£","") %>% 
-    str_replace_all(",","")
-  text_con <- textConnection(table)
-  data_table <- read.csv(text_con,sep="|")
-  
-  #Extracting desired column and making numerical
-  data_table <- data_table[c(1,4)]
-  data_table <- data_table %>% transform(Salary.3=as.numeric(Salary.3))
-  
-  #Merging consultant role salaries into one row; they occupy rows 4&5
-  data_table[c(4,5),2] <- mean(data_table[c(4,5),2])
-  data_table <- data.frame(data_table[c(1:4,6:7),c(1,2)])
-  
-  #Now I've merged the consultant salaries and will rename the rows, I don't need column 1
-  salary <- data_table[c(2)]
-  
-  #Changing row and column titles to be code-friendly
-  rownames(salary) <- c("fy1","fy2","reg","con","spec","staff")
-  colnames(salary) <- "median_salary"
-  
-  #outputting end data frame, so it is use-able by map_df
-  salary
-  #end of function
+#Removing useless columns in all dfs
+mean_salary_change_df <- mean_salary_change_df[,-1]
+cpih_df <- cpih_df[,-1]
+salary_change_df <- salary_change_df[,-1]
+
+#Reformatting cpih so that the index starts at 0, to match salary change dfs
+for (i in c(1:nrow(cpih_df))){
+  cpih_df$cpih[i] <- as.numeric(cpih_df[i,2]-100)
+}
+
+#Creating a cpih df to be compatible with all groups of salary_change_df
+for (i in c(1:5)){
+  if (i==1){
+    cpih_all_groups <- cpih_df
+  }
+  else{
+    cpih_all_groups <- rbind(cpih_all_groups,cpih_df)
+  }
 }
 
 
-#Creating a vector that contains a list of all the files in my pdf folder
-pdf_list <- list.files(here("data","raw","pdf"))
+#First project will be to compare mean data with cpih data
 
-#creating arbitrary df as a master df for all data from all pdfs
-all_pdf_data <- data.frame(median_salary=c(NA,NA,NA,NA,NA,NA))
-rownames(all_pdf_data) <- c("fy1","fy2","reg","con","spec","staff")
+#Merging mean data and cpih data & removing superfluous date column
+cpih_vs_mean_salary <- cbind(mean_salary_change_df,cpih_df)
+cpih_vs_mean_salary <- cpih_vs_mean_salary[,-3]
+
+#Calculating difference between cpih and mean salary change
+cpih_vs_mean_salary$diff <- cpih_vs_mean_salary$mean_salary_change-cpih_vs_mean_salary$cpih
+
+#Plotting the difference
+p_mean_diff <- ggplot(cpih_vs_mean_salary,aes(x=date,y=diff))
+
+p_mean_diff+geom_line()+geom_smooth(method="gam")
 
 
-#For loop that works through the pdf files in my raw data
-for (i in c(1:length(pdf_list))){
-  
-  #Extracting pdf from folder and turns it into a string of text
-  raw_table <- map(here("data","raw","pdf",pdf_list[i]),pdf_text)
-  
-  #Applying pdf_extract function on raw data
-  salary_data <- map_df(raw_table,pdf_extract)
-  
-  #Adding the looped salary_data to all_pdf_data
-  all_pdf_data[,i] <- salary_data[,1]
-  
-  #changing the column names to match the data
-  colnames(all_pdf_data)[i] <- sub(".pdf","",pdf_list[i])
+
+
+
+
+#Calculating effective money gained/lost from beginning to end of time sequence
+
+#The comparison income will be the mean income per month of all doctors
+mean_income <- mean(salary_change_df$amount)
+
+#Altering cpih_vs_mean_salary to include a column with cumulative income change
+for (i in c(1:nrow(cpih_vs_mean_salary))){
+  if (i==1){
+    cpih_vs_mean_salary$cumulative_income_change[1] <- 0 #set baseline
+  }
+  else{
+    cpih_vs_mean_salary$cumulative_income_change[i] <- 
+      (mean_income*(cpih_vs_mean_salary$diff[i]/100))+
+      cpih_vs_mean_salary$cumulative_income_change[i-1]
+  }
 }
 
-#Saving data to 'refined' data folder
-write.csv(all_pdf_data,here("data","refined","pdf_data.csv"),row.names=TRUE)
+#Plotting the above
+p_cumulative <- ggplot(cpih_vs_mean_salary,aes(x=date,y=cumulative_income_change))
+
+p_cumulative+geom_line()
 
 
+#Data can be changed to represent cumulative income lost due to inflation
+
+
+
+
+mean_income_end <- mean_income
+
+for (i in c(1:nrow(cpih_vs_mean_salary))){
+  mean_income_end <- (mean_income*(cpih_vs_mean_salary$diff[i]/100))+
+    mean_income_end
+  print(mean_income_end)
+}
+
+
+
+
+
+#Second project is to compare each doctor group with cpih data
+
+#Merging all groups data and cpih data & removing superfluous date column
+cpih_vs_salary <- cbind(salary_change_df,cpih_all_groups)
+cpih_vs_salary <- cpih_vs_salary[,-5]
+
+#Calculating difference between cpih and mean salary change
+cpih_vs_salary$diff <- cpih_vs_salary$change-cpih_vs_salary$cpih
+
+#Plotting the difference
+p_diff <- ggplot(cpih_vs_salary,aes(x=date,y=diff,color=group))
+
+p_diff+geom_line()+geom_smooth(method="gam")

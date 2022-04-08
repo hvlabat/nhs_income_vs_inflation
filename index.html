@@ -159,8 +159,6 @@ Project</h1>
 
 <div class="entry-content">
 
-<p>You can find the repository for this project by <a href="https://github.com/hvlabat/nhs_income_vs_inflation">clicking
-here</a>.</p>
 <div id="background" class="section level1">
 <h1>Background</h1>
 <p>Text</p>
@@ -222,41 +220,43 @@ skill.</p>
 <span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>  data_table[<span class="fu">c</span>(<span class="dv">4</span>,<span class="dv">5</span>),<span class="dv">2</span>] <span class="ot">&lt;-</span> <span class="fu">mean</span>(data_table[<span class="fu">c</span>(<span class="dv">4</span>,<span class="dv">5</span>),<span class="dv">2</span>])</span>
 <span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>  data_table <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(data_table[<span class="fu">c</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>,<span class="dv">6</span><span class="sc">:</span><span class="dv">7</span>),<span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>)])</span>
 <span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a>  <span class="co">#Now I&#39;ve merged the consultant salaries and will rename the rows, I don&#39;t need column 1</span></span>
-<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a>  salary <span class="ot">&lt;-</span> data_table[<span class="fu">c</span>(<span class="dv">2</span>)]</span>
-<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a>  <span class="co">#Changing row and column titles to be code-friendly</span></span>
-<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rownames</span>(salary) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;fy1&quot;</span>,<span class="st">&quot;fy2&quot;</span>,<span class="st">&quot;reg&quot;</span>,<span class="st">&quot;con&quot;</span>,<span class="st">&quot;spec&quot;</span>,<span class="st">&quot;staff&quot;</span>)</span>
-<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a>  <span class="fu">colnames</span>(salary) <span class="ot">&lt;-</span> <span class="st">&quot;median_salary&quot;</span></span>
-<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a>  <span class="co">#outputting end data frame, so it is useable by map_df</span></span>
-<span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a>  salary</span>
-<span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a>  <span class="co">#end of function</span></span>
-<span id="cb2-41"><a href="#cb2-41" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a>  <span class="co">#Renaming the rows to be code-friendly</span></span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a>  data_table[<span class="dv">1</span>] <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;fy1&quot;</span>,<span class="st">&quot;fy2&quot;</span>,<span class="st">&quot;reg&quot;</span>,<span class="st">&quot;con&quot;</span>,<span class="st">&quot;spec&quot;</span>,<span class="st">&quot;staff&quot;</span>)</span>
+<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a>  <span class="co">#outputting end data frame, so it is use-able by map_df</span></span>
+<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a>  data_table</span>
+<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a>  <span class="co">#end of function</span></span>
+<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a><span class="co">#Creating a vector that contains a list of all the files in my pdf folder</span></span>
+<span id="cb2-41"><a href="#cb2-41" aria-hidden="true" tabindex="-1"></a>pdf_list <span class="ot">&lt;-</span> <span class="fu">list.files</span>(<span class="fu">here</span>(<span class="st">&quot;data&quot;</span>,<span class="st">&quot;raw&quot;</span>,<span class="st">&quot;pdf&quot;</span>))</span>
 <span id="cb2-42"><a href="#cb2-42" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-43"><a href="#cb2-43" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-44"><a href="#cb2-44" aria-hidden="true" tabindex="-1"></a><span class="co">#Creating a vector that contains a list of all the files in my pdf folder</span></span>
-<span id="cb2-45"><a href="#cb2-45" aria-hidden="true" tabindex="-1"></a>pdf_list <span class="ot">&lt;-</span> <span class="fu">list.files</span>(<span class="fu">here</span>(<span class="st">&quot;data&quot;</span>,<span class="st">&quot;raw&quot;</span>,<span class="st">&quot;pdf&quot;</span>))</span>
-<span id="cb2-46"><a href="#cb2-46" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-47"><a href="#cb2-47" aria-hidden="true" tabindex="-1"></a><span class="co">#creating arbitrary df as a master df for all data from all pdfs</span></span>
-<span id="cb2-48"><a href="#cb2-48" aria-hidden="true" tabindex="-1"></a>all_pdf_data <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">median_salary=</span><span class="fu">c</span>(<span class="cn">NA</span>,<span class="cn">NA</span>,<span class="cn">NA</span>,<span class="cn">NA</span>,<span class="cn">NA</span>,<span class="cn">NA</span>))</span>
-<span id="cb2-49"><a href="#cb2-49" aria-hidden="true" tabindex="-1"></a><span class="fu">rownames</span>(all_pdf_data) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;fy1&quot;</span>,<span class="st">&quot;fy2&quot;</span>,<span class="st">&quot;reg&quot;</span>,<span class="st">&quot;con&quot;</span>,<span class="st">&quot;spec&quot;</span>,<span class="st">&quot;staff&quot;</span>)</span>
-<span id="cb2-50"><a href="#cb2-50" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-51"><a href="#cb2-51" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-52"><a href="#cb2-52" aria-hidden="true" tabindex="-1"></a><span class="co">#For loop that works through the pdf files in my raw data</span></span>
-<span id="cb2-53"><a href="#cb2-53" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">c</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">length</span>(pdf_list))){</span>
-<span id="cb2-54"><a href="#cb2-54" aria-hidden="true" tabindex="-1"></a>  <span class="co">#Extracting pdf from folder and turns it into a string of text</span></span>
-<span id="cb2-55"><a href="#cb2-55" aria-hidden="true" tabindex="-1"></a>  raw_table <span class="ot">&lt;-</span> <span class="fu">map</span>(<span class="fu">here</span>(<span class="st">&quot;data&quot;</span>,<span class="st">&quot;raw&quot;</span>,<span class="st">&quot;pdf&quot;</span>,pdf_list[i]),pdf_text)</span>
-<span id="cb2-56"><a href="#cb2-56" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb2-57"><a href="#cb2-57" aria-hidden="true" tabindex="-1"></a>  <span class="co">#Applying pdf_extract function on raw data</span></span>
-<span id="cb2-58"><a href="#cb2-58" aria-hidden="true" tabindex="-1"></a>  salary_data <span class="ot">&lt;-</span> <span class="fu">map_df</span>(raw_table,pdf_extract)</span>
-<span id="cb2-59"><a href="#cb2-59" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb2-60"><a href="#cb2-60" aria-hidden="true" tabindex="-1"></a>  <span class="co">#Adding the looped salary_data to all_pdf_data</span></span>
-<span id="cb2-61"><a href="#cb2-61" aria-hidden="true" tabindex="-1"></a>  all_pdf_data[,i] <span class="ot">&lt;-</span> salary_data[,<span class="dv">1</span>]</span>
-<span id="cb2-62"><a href="#cb2-62" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb2-63"><a href="#cb2-63" aria-hidden="true" tabindex="-1"></a>  <span class="co">#changing the column names to match the data</span></span>
-<span id="cb2-64"><a href="#cb2-64" aria-hidden="true" tabindex="-1"></a>  <span class="fu">colnames</span>(all_pdf_data)[i] <span class="ot">&lt;-</span> <span class="fu">sub</span>(<span class="st">&quot;.pdf&quot;</span>,<span class="st">&quot;&quot;</span>,pdf_list[i])</span>
-<span id="cb2-65"><a href="#cb2-65" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<span id="cb2-43"><a href="#cb2-43" aria-hidden="true" tabindex="-1"></a><span class="co">#creating df as a master df for all data from all pdfs</span></span>
+<span id="cb2-44"><a href="#cb2-44" aria-hidden="true" tabindex="-1"></a>pdf_data <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">role=</span><span class="fu">c</span>(<span class="st">&quot;fy1&quot;</span>,<span class="st">&quot;fy2&quot;</span>,<span class="st">&quot;reg&quot;</span>,<span class="st">&quot;con&quot;</span>,<span class="st">&quot;spec&quot;</span>,<span class="st">&quot;staff&quot;</span>))</span>
+<span id="cb2-45"><a href="#cb2-45" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-46"><a href="#cb2-46" aria-hidden="true" tabindex="-1"></a><span class="co">#For loop that works through the pdf files in my raw data</span></span>
+<span id="cb2-47"><a href="#cb2-47" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">c</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">length</span>(pdf_list))){</span>
+<span id="cb2-48"><a href="#cb2-48" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb2-49"><a href="#cb2-49" aria-hidden="true" tabindex="-1"></a>  <span class="co">#Extracting pdf from folder and turns it into a string of text</span></span>
+<span id="cb2-50"><a href="#cb2-50" aria-hidden="true" tabindex="-1"></a>  raw_table <span class="ot">&lt;-</span> <span class="fu">map</span>(<span class="fu">here</span>(<span class="st">&quot;data&quot;</span>,<span class="st">&quot;raw&quot;</span>,<span class="st">&quot;pdf&quot;</span>,pdf_list[i]),pdf_text)</span>
+<span id="cb2-51"><a href="#cb2-51" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb2-52"><a href="#cb2-52" aria-hidden="true" tabindex="-1"></a>  <span class="co">#Applying pdf_extract function on raw data</span></span>
+<span id="cb2-53"><a href="#cb2-53" aria-hidden="true" tabindex="-1"></a>  data_table <span class="ot">&lt;-</span> <span class="fu">map_df</span>(raw_table,pdf_extract)</span>
+<span id="cb2-54"><a href="#cb2-54" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb2-55"><a href="#cb2-55" aria-hidden="true" tabindex="-1"></a>  <span class="co">#Adding the looped data_table to pdf_data</span></span>
+<span id="cb2-56"><a href="#cb2-56" aria-hidden="true" tabindex="-1"></a>  pdf_data[,i<span class="sc">+</span><span class="dv">1</span>] <span class="ot">&lt;-</span> data_table[,<span class="dv">2</span>]</span>
+<span id="cb2-57"><a href="#cb2-57" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb2-58"><a href="#cb2-58" aria-hidden="true" tabindex="-1"></a>  <span class="co">#changing the column names to match the data</span></span>
+<span id="cb2-59"><a href="#cb2-59" aria-hidden="true" tabindex="-1"></a>  <span class="fu">colnames</span>(pdf_data)[i<span class="sc">+</span><span class="dv">1</span>] <span class="ot">&lt;-</span> <span class="fu">sub</span>(<span class="st">&quot;.pdf&quot;</span>,<span class="st">&quot;&quot;</span>,pdf_list[i])</span>
+<span id="cb2-60"><a href="#cb2-60" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb2-61"><a href="#cb2-61" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-62"><a href="#cb2-62" aria-hidden="true" tabindex="-1"></a><span class="co">#Saving data to &#39;refined&#39; data folder</span></span>
+<span id="cb2-63"><a href="#cb2-63" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(pdf_data,<span class="fu">here</span>(<span class="st">&quot;data&quot;</span>,<span class="st">&quot;refined&quot;</span>,<span class="st">&quot;pdf_data.csv&quot;</span>),<span class="at">row.names=</span><span class="cn">TRUE</span>)</span></code></pre></div>
+<p>I</p>
+<p>To get an idea of the methods/data/etc used, you can find the
+repository for this project by <a href="https://github.com/hvlabat/nhs_income_vs_inflation">clicking
+here</a>.</p>
 </div>
 </div><!-- /.entry-content -->
 </article>

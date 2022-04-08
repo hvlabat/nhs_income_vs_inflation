@@ -13,8 +13,6 @@ output:
 knitr::opts_chunk$set(fig.width=12,fig.height=8,echo=TRUE,
                       warning=FALSE,message=FALSE)
 ```
-You can find the repository for this project by [clicking here](https://github.com/hvlabat/nhs_income_vs_inflation).
-
 # Background
 Text
 
@@ -39,6 +37,17 @@ Text
 Mention how I didn't include Jan-March 2007 data because they don't separate specialist from staff grade incomes, thus it isn't fair to compare. From April onwards they do, so I can compare them fairly.
 
 I chose the media FTE because, by the NHS's account, it is a "more robust indicator of typical pay"
+
+### I found that the data from 2021 contained salary breakdowns from 2010. Since I had pdf data from June 2007 until December 2008, and from August 2010 until December 2021, I needed data from March 2009 to September 2010. I found three sheets that provided this data, specifically:
+Data from Jan-March 2009 until September 2012 from: https://digital.nhs.uk/data-and-information/publications/statistical/nhs-staff-earnings-estimates/nhs-staff-earnings-estimates-to-september-2012
+
+Data until December 2021 from:https://digital.nhs.uk/data-and-information/publications/statistical/nhs-staff-earnings-estimates/december-2021-provisional-statistics
+
+Data from June 2007 to December 2008, from various links (pdf data)
+
+### Talk about how the data from 2009 to 2010 is inevitably 
+
+### Thus best to compare data from August 2010 onwards
 ```{r data}
 
 ```
@@ -49,7 +58,7 @@ I chose the media FTE because, by the NHS's account, it is a "more robust indica
 
 I created a function that would extract the required data from the 7 pdf files of 2007-2008. It would have been faster to extract the information by hand, but I enjoyed the challenge and I learned a new skill.
 
-```{r preparation pdfs}
+```{r preparation pdfs, message=TRUE}
 #Creating function to extract salary data from .pdf file
 pdf_extract <- function(raw){
   
@@ -80,15 +89,11 @@ pdf_extract <- function(raw){
   data_table[c(4,5),2] <- mean(data_table[c(4,5),2])
   data_table <- data.frame(data_table[c(1:4,6:7),c(1,2)])
   
-  #Now I've merged the consultant salaries and will rename the rows, I don't need column 1
-  salary <- data_table[c(2)]
-  
-  #Changing row and column titles to be code-friendly
-  rownames(salary) <- c("fy1","fy2","reg","con","spec","staff")
-  colnames(salary) <- "median_salary"
-  
+  #Renaming the rows to be code-friendly
+  data_table[1] <- c("fy1","fy2","reg","con","spec","staff")
+
   #outputting end data frame, so it is use-able by map_df
-  salary
+  data_table
   #end of function
 }
 
@@ -96,10 +101,8 @@ pdf_extract <- function(raw){
 #Creating a vector that contains a list of all the files in my pdf folder
 pdf_list <- list.files(here("data","raw","pdf"))
 
-#creating arbitrary df as a master df for all data from all pdfs
-all_pdf_data <- data.frame(median_salary=c(NA,NA,NA,NA,NA,NA))
-rownames(all_pdf_data) <- c("fy1","fy2","reg","con","spec","staff")
-
+#creating df as a master df for all data from all pdfs
+pdf_data <- data.frame(role=c("fy1","fy2","reg","con","spec","staff"))
 
 #For loop that works through the pdf files in my raw data
 for (i in c(1:length(pdf_list))){
@@ -108,17 +111,22 @@ for (i in c(1:length(pdf_list))){
   raw_table <- map(here("data","raw","pdf",pdf_list[i]),pdf_text)
   
   #Applying pdf_extract function on raw data
-  salary_data <- map_df(raw_table,pdf_extract)
+  data_table <- map_df(raw_table,pdf_extract)
   
-  #Adding the looped salary_data to all_pdf_data
-  all_pdf_data[,i] <- salary_data[,1]
+  #Adding the looped data_table to pdf_data
+  pdf_data[,i+1] <- data_table[,2]
   
   #changing the column names to match the data
-  colnames(all_pdf_data)[i] <- sub(".pdf","",pdf_list[i])
+  colnames(pdf_data)[i+1] <- sub(".pdf","",pdf_list[i])
 }
 
 #Saving data to 'refined' data folder
-write.csv(all_pdf_data,here("data","refined","pdf_data.csv"),row.names=TRUE)
+write.csv(pdf_data,here("data","refined","pdf_data.csv"),row.names=TRUE)
 ```
 I 
 
+Explanation of the groups I want to filter in
+#These are Consultant, Speciality Registrar, Core Training, FY1, and FY2 staff groups
+#These are the training posts or end-of-training post (consultant), so are relevant to most doctors
+
+To get an idea of the methods/data/etc used, you can find the repository for this project by [clicking here](https://github.com/hvlabat/nhs_income_vs_inflation).
