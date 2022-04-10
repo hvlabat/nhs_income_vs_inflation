@@ -128,5 +128,7 @@ I
 Explanation of the groups I want to filter in
 #These are Consultant, Speciality Registrar, Core Training, FY1, and FY2 staff groups
 #These are the training posts or end-of-training post (consultant), so are relevant to most doctors
+# Mention why there is a dip in pay during August despite the CIPH not changing
+# Mention why not using splitLayout
 
 To get an idea of the methods/data/etc used, you can find the repository for this project by [clicking here](https://github.com/hvlabat/nhs_income_vs_inflation).
