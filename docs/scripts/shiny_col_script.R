@@ -12,7 +12,6 @@ library(profvis) #used this to optimise my graph to allow for better animation
 
 #Note: This needs income_vs_inflation_script to be run first.
 
-#Fifth Data-Wrangling & Visualisation:
 #Creating a shiny ui;
 #Mapping p_group_cumulative alongside bar charts showing salary and ciph change
 

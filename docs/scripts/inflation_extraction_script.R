@@ -43,5 +43,19 @@ p_cpih <- ggplot(cpih_df,aes(x=date,y=cpih))
 
 p_cpih+geom_line()
 
+#Creating new column for upcoming for loop
+cpih_df$cpih_change <- NA
+
+#For loop to calculate the change in cpih between months
+for (val in c(1:nrow(cpih_df))){
+  if (val==1){
+    cpih_df$cpih_change[val] <- 0
+  }
+  else{
+    cpih_df$cpih_change[val] <- as.numeric(cpih_df[val,2]-cpih_df[val-1,2])
+  }
+}
+
+
 #Saving data to 'refined' data folder
 write.csv(cpih_df,here("data","refined","cpih_data.csv"))

@@ -17,9 +17,7 @@ cpih_df <- cpih_df[,-1]
 salary_change_df <- salary_change_df[,-1]
 
 #Reformatting cpih so that the index starts at 0, to match salary change dfs
-for (i in c(1:nrow(cpih_df))){
-  cpih_df$cpih[i] <- as.numeric(cpih_df[i,2]-100)
-}
+cpih_df$cpih <- cpih_df$cpih-100
 
 #Creating a cpih df to be compatible with all groups of salary_change_df
 for (i in c(1:5)){
@@ -102,7 +100,7 @@ cpih_vs_salary <- cbind(salary_change_df,cpih_all_groups)
 cpih_vs_salary <- cpih_vs_salary[,-5]
 
 #Calculating difference between cpih and salary change
-cpih_vs_salary$diff <- cpih_vs_salary$change-cpih_vs_salary$cpih
+cpih_vs_salary$diff <- cpih_vs_salary$salary_change-cpih_vs_salary$cpih
 
 #Plotting the difference
 p_diff <- ggplot(cpih_vs_salary,aes(x=date,y=diff,colour=group))
@@ -172,3 +170,68 @@ p_group_cumulative+
                                "#D55E00"))+ #compatible for colour-blind people
   theme(axis.title.x = element_text(vjust=-0.35),
         axis.title.y = element_text(vjust=2.5)) #shifting axis titles to give space
+
+
+
+#FIfth Data-Wrangling & Visualisation:
+#Calculating how much doctors should be earning if their incomes consistently
+#increased with cpih since 2009, and comparing this to present income changes
+
+#Using cpih_change from cpih_df to calculate cpih-adjusted salary
+for (i in c(1:nrow(cpih_vs_salary))){
+  if (i==1){
+    cpih_vs_salary$cpih_matched_salary[i] <- cpih_vs_salary$amount[i] #set beginning baseline
+  }
+  else if ((i-1)%%148==0){
+    cpih_vs_salary$cpih_matched_salary[i] <- cpih_vs_salary$amount[i] #set baseline for each group
+  }
+  else{
+    cpih_vs_salary$cpih_matched_salary[i] <-
+      (cpih_vs_salary$cpih_matched_salary[i-1]*(cpih_vs_salary$cpih_change[i])/100)+
+      cpih_vs_salary$cpih_matched_salary[i-1]
+  }
+}
+
+#Using cpih_matched_salary to compare against real salary per group
+ggplot()+
+  geom_line(data=cpih_vs_salary,
+            aes(x=date,
+                y=amount,
+                colour=group),
+            size=1)+
+  geom_line(data=cpih_vs_salary,
+            aes(x=date,
+                y=cpih_matched_salary,
+                colour=group),
+            size=1,
+            linetype=2)+
+  theme_light()+
+  scale_y_continuous(labels=dollar_format(prefix="£"),
+                     breaks=seq(2000,9000,1000),
+                     minor_breaks=seq(1000,10000,250),
+                     limits=c(1000,10000),
+                     expand=c(0,0))+
+  scale_x_date(date_breaks="1 year",
+               date_minor_breaks="3 months",
+               date_labels="%Y",
+               limits=as.Date(c("2009-07-01","2022-06-15")),
+               expand=c(0,0))+
+  labs(title="Inflation-Matched Salary vs Real Salary of NHS Doctors",
+       subtitle="Dashed Line = Inflation-Matched, Solid Line = Real Salary",
+       colour="Stage of Training")+
+  theme(plot.title=element_text(colour="#56B4E9",size=15),
+        panel.grid.major=element_line(size=1,colour="grey85"),
+        panel.grid.minor=element_line(colour="grey90"),
+        axis.title.x = element_text(vjust=-0.35),
+        axis.title.y = element_text(vjust=2.5), #shifting axis titles to give space
+        axis.ticks=element_line(size=1))+ #to match major grid size
+  xlab("Date")+
+  ylab("Monthly Salary")+
+  scale_colour_manual(values=c("#E69F00",
+                               "#56B4E9",
+                               "#009E73",
+                               "#F0E442",
+                               "#D55E00")) #compatible for colour-blind people
+
+
+

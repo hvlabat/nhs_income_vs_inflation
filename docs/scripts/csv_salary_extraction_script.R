@@ -39,7 +39,7 @@ p+geom_point()+
 
 #creating df to store salary change data from upcoming loop
 salary_change_df <- data.frame(NA,NA,NA,NA)
-colnames(salary_change_df) <- c("date","group","amount","change")
+colnames(salary_change_df) <- c("date","group","amount","salary_change")
 salary_change_df$date <- as.Date(salary_change_df$date,format="%Y-%m-%d")
 
 
@@ -51,7 +51,7 @@ for (i in c(1:length(target_groups))){
   
   #Finding % change in salary per month compared to August 2010, for specified group
   for (val in c(1:nrow(filter(salary_df,group==target_groups[i])))){
-    temp_df$change[val] <- as.numeric(100*(temp_df[val,3]-temp_df[1,3])/temp_df[1,3])
+    temp_df$salary_change[val] <- as.numeric(100*(temp_df[val,3]-temp_df[1,3])/temp_df[1,3])
   }
   
   #Adding temp_df to salary_change_df
@@ -66,7 +66,7 @@ for (i in c(1:length(target_groups))){
 }
 
 #Plot to visualise salary change for each group 
-p_csv_salary <- ggplot(salary_change_df,aes(x=date,y=change,color=group))
+p_csv_salary <- ggplot(salary_change_df,aes(x=date,y=salary_change,color=group))
 
 p_csv_salary+geom_point()+
   geom_smooth(method="gam")
@@ -75,7 +75,7 @@ p_csv_salary+geom_point()+
 #Creating df to measure mean salary change across all groups, over time
 mean_salary_change_df <- salary_change_df %>% 
   group_by(date) %>%
-  summarise(mean_salary_change=mean(change))
+  summarise(mean_salary_change=mean(salary_change))
 
 #Visualising this data, to check it is correct
 p_mean_salary_change <- ggplot(mean_salary_change_df,aes(x=date,y=mean_salary_change))
