@@ -2,10 +2,10 @@
 title: "NHS Doctor Income vs Inflation Project"
 author: "Hugo Labat"
 date: "`r Sys.Date()`"
+runtime: shiny
 output:
-  prettydoc::html_pretty:
-    theme: hpstr
-  pdf_document: default
+  html_document:
+    theme: sandstone
 ---
 ```{r global-options, include=FALSE}
 #This sets a few defaults for this entire markdown, to make it visually constant
@@ -14,474 +14,63 @@ knitr::opts_chunk$set(fig.width=12,fig.height=8,echo=TRUE,
                       warning=FALSE,message=FALSE)
 ```
 # Background
-Text
+The medical profession in the UK revolves around the National Health Service (NHS), a world-renowned system respected for its high-quality and "free at the point of delivery" approach. Part of this system is the training of healthcare professionals, who are mandated to work in the NHS throughout their training in order to be officially recognised in their role. In this lens, however, the NHS becomes a monopsony; where a monopoly is the sole provider of a good or service, a monopsony is the sole buyer.
+
+These above facts, combined with the NHS' chronic lack of funding, has resulted in reduced salaries for all healthcare professionals working in the United Kingdom, when compared to other developed countries. Furthermore, over 2010-2015 ear, doctors in all stages of training were protesting about the inability for their salaries to match the trends in inflation, leading to effective losses in income and progressively less return for their - at the very least - decade-long investment to education.
 
 
 # Aims
-Text
+I wanted to find out more about the above claims, and aimed to plot the change in NHS doctor salaries versus changes in inflation. To this end, I wanted to create two main plots to visualise:
+
+1) The cumulative money lost by doctors due to inflation
+
+2) The real salary of doctors versus the salary they should have if it matched changes in inflation
+
+To do this, I discovered a third, lesser plot would be helpful in visualising the change: a plot indicating the percentage change in inflation and salary for each month.
 
 
+# Data Origins
+For the salary data, I used the official NHS Earnings Estimates data, which I accessed from [the NHS website.](https://web.archive.org/web/20220417162020/https://digital.nhs.uk/data-and-information/publications/statistical/nhs-staff-earnings-estimates) The exact data I used is before and including December 2021, which was the latest version at the time; this included data from September 2009 onwards.
 
-# Test Plots
+I also took data from June 2007 to Decemeber 2008, which was available in pdf format, though this did not have the same staff break-downs as the csv data so I ultimately did not use it, despite extracting the data (as seen later on). The roles I wanted information on are as follows, listed in descending seniority:
 
-```{r test_plots}
-#Loading all necessary libraries
-library(tidyverse)
-library(here)
-library(scales)
+- Consultant
+- Specialist Registrar (ST)
+- Core Trainee (CT)
+- Foundation Doctor Year 2 (FY2)
+- Foundation Doctor Year 1 (FY1)
 
-#Extracting required data into data frame
-mean_salary_change_df <- read_csv(here("data","refined","mean_salary_change.csv"))
-cpih_df <- read_csv(here("data","refined","cpih_data.csv"))
-salary_change_df <- read_csv(here("data","refined","salary_change.csv"))
+This is because these are the mandatory steps for any doctor wanting to specialise in the NHS, with the end-goal being consultancy. Including medical school, this takes a minimum of 10 years.
 
-#Removing useless columns in all dfs
-mean_salary_change_df <- mean_salary_change_df[,-1]
-cpih_df <- cpih_df[,-1]
-salary_change_df <- salary_change_df[,-1]
-
-#Reformatting cpih so that the index starts at 0, to match salary change dfs
-cpih_df$cpih <- cpih_df$cpih-100
-
-#Creating a cpih df to be compatible with all groups of salary_change_df
-for (i in c(1:5)){
-  if (i==1){
-    cpih_all_groups <- cpih_df
-  }
-  else{
-    cpih_all_groups <- rbind(cpih_all_groups,cpih_df)
-  }
-}
+For the inflation data, I used the Office for National Statistics (ONS) Consumer Price Index data including owner occupiers' Housing costs (CPIH), which I accessed from [the ONS website.](https://web.archive.org/web/20220417162131/https://www.ons.gov.uk/economy/inflationandpriceindices/bulletins/consumerpriceinflation/january2022)
 
 
-#First Data-Wrangling & Visualisation:
-#Comparing mean salary data with cpih data
+# Data-Wrangling
+Having downloaded the data, I was ready to extract and process it. All the raw scripts for this are included in my 'docs' folder, and I include the important parts here.
 
-#Merging mean data and cpih data & removing superfluous date column
-cpih_vs_mean_salary <- cbind(mean_salary_change_df,cpih_df)
-cpih_vs_mean_salary <- cpih_vs_mean_salary[,-3]
-
-#Calculating difference between cpih and mean salary change
-cpih_vs_mean_salary$diff <- cpih_vs_mean_salary$mean_salary_change-cpih_vs_mean_salary$cpih
-
-#Plotting the difference
-p_mean_diff <- ggplot(cpih_vs_mean_salary,aes(x=date,y=diff))
-
-p_mean_diff+geom_line()+geom_smooth(method="gam")
-
-
-
-#Second Data-Wrangling & Visualisation:
-#Calculating effective money gained/lost from beginning to end of time sequence
-#For average income of all doctors
-
-#The comparison income will be the mean income per month of all doctors
-mean_income <- mean(salary_change_df$amount)
-
-#Altering cpih_vs_mean_salary to include a column with cumulative income change
-for (i in c(1:nrow(cpih_vs_mean_salary))){
-  if (i==1){
-    cpih_vs_mean_salary$cumulative_income_change[1] <- 0 #set baseline
-  }
-  else{
-    cpih_vs_mean_salary$cumulative_income_change[i] <- 
-      (mean_income*(cpih_vs_mean_salary$diff[i]/100))+
-      cpih_vs_mean_salary$cumulative_income_change[i-1]
-  }
-}
-
-#Changing data to represent cumulative income lost due to inflation
-cpih_vs_mean_salary$cumulative_income_lost <- -cpih_vs_mean_salary$cumulative_income_change
-
-#Plotting the above, with changes to make the plot aesthetically pleasing
-p_mean_cumulative <- ggplot(cpih_vs_mean_salary,aes(x=date,y=cumulative_income_lost))
-
-p_mean_cumulative+geom_line(colour="steelblue",size=1)+
-  scale_y_continuous(labels=dollar_format(prefix="£"),
-                     breaks=seq(0,30000,5000),
-                     minor_breaks=seq(-1000,31000,1000),
-                     limits=c(-1000,30000),
-                     expand=c(0,0))+
-  scale_x_date(date_breaks="1 year",
-               date_labels="%Y",
-               limits=as.Date(c("2009-07-01","2022-07-01")),
-               expand=c(0,0))+
-  labs(title="Average Cumulative Income Lost to Inflation by an NHS Doctor",
-       subtitle="From Sept 2009 to Dec 2021")+
-  theme(plot.title=element_text(colour="steelblue"))+
-  xlab("Date")+
-  ylab("Cumulative Income Lost")+
-  theme(axis.title.x = element_text(vjust=-0.35),
-        axis.title.y = element_text(vjust=2)) #shifting axis titles to give space
-
-
-
-#Third Data-Wrangling & Visualisation:
-#Comparing per-group salary data with cpih data
-
-#Merging all groups data and cpih data & removing superfluous date column
-cpih_vs_salary <- cbind(salary_change_df,cpih_all_groups)
-cpih_vs_salary <- cpih_vs_salary[,-5]
-
-#Calculating difference between cpih and salary change
-cpih_vs_salary$diff <- cpih_vs_salary$salary_change-cpih_vs_salary$cpih
-
-#Plotting the difference
-p_diff <- ggplot(cpih_vs_salary,aes(x=date,y=diff,colour=group))
-
-p_diff+geom_line()+geom_smooth(method="gam")
-
-
-
-#Fourth Data-Wrangling & Visualisation:
-#Calculating effective money gained/lost from beginning to end of time sequence
-#For each income of each doctor group
-
-#Creating group_change to measure income lost per group, with each group being 148 long
-for (i in c(1:nrow(cpih_vs_salary))){
-  if (i==1){
-    cpih_vs_salary$cumulative_income_lost[i] <- 0 #set beginning baseline
-  }
-  else if ((i-1)%%148==0){
-    cpih_vs_salary$cumulative_income_lost[i] <- 0 #set baseline for each group
-  }
-  else{
-    cpih_vs_salary$cumulative_income_lost[i] <- 
-      -((mean_income*(cpih_vs_salary$diff[i]/100))-
-      cpih_vs_salary$cumulative_income_lost[i-1])
-  }
-}
-
-#Ordering the 'group' column in order of descending seniority (consultant->fy1)
-cpih_vs_salary$group <- factor(cpih_vs_salary$group,
-                               levels=c("Consultant",
-                                        "Specialty Registrar",
-                                        "Core Training",
-                                        "Foundation Doctor Year 2",
-                                        "Foundation Doctor Year 1"))
-
-#Plotting the above, with changes to make it aesthetically pleasing
-p_group_cumulative <- ggplot(cpih_vs_salary,aes(x=date,
-                                                y=cumulative_income_lost,
-                                                colour=group))
-
-p_group_cumulative+
-  geom_line(size=1)+
-  theme_light()+
-  scale_y_continuous(labels=dollar_format(prefix="£"),
-                     breaks=seq(0,50000,5000),
-                     minor_breaks=seq(-2000,50000,1000),
-                     limits=c(-2000,48000),
-                     expand=c(0,0))+
-  scale_x_date(date_breaks="1 year",
-               date_minor_breaks="3 months",
-               date_labels="%Y",
-               limits=as.Date(c("2009-07-01","2022-06-15")),
-               expand=c(0,0))+
-  labs(title="Cumulative Salary Lost to Inflation by NHS Doctors",
-       subtitle="From Sept 2009 to Dec 2021, per Stage of Training",
-       colour="Stage of Training")+
-  theme(plot.title=element_text(colour="#56B4E9",size=15),
-        panel.grid.major=element_line(size=1,colour="grey85"),
-        panel.grid.minor=element_line(colour="grey90"),
-        axis.ticks=element_line(size=1))+ #to match major grid size
-  xlab("Date")+
-  ylab("Cumulative Salary Loss")+
-  scale_colour_manual(values=c("#E69F00",
-                               "#56B4E9",
-                               "#009E73",
-                               "#F0E442",
-                               "#D55E00"))+ #compatible for colour-blind people
-  theme(axis.title.x = element_text(vjust=-0.35),
-        axis.title.y = element_text(vjust=2.5)) #shifting axis titles to give space
-
-
-
-#FIfth Data-Wrangling & Visualisation:
-#Calculating how much doctors should be earning if their incomes consistently
-#increased with cpih since 2009, and comparing this to present income changes
-
-#Using cpih_change from cpih_df to calculate cpih-adjusted salary
-for (i in c(1:nrow(cpih_vs_salary))){
-  if (i==1){
-    cpih_vs_salary$cpih_matched_salary[i] <- cpih_vs_salary$amount[i] #set beginning baseline
-  }
-  else if ((i-1)%%148==0){
-    cpih_vs_salary$cpih_matched_salary[i] <- cpih_vs_salary$amount[i] #set baseline for each group
-  }
-  else{
-    cpih_vs_salary$cpih_matched_salary[i] <-
-      (cpih_vs_salary$cpih_matched_salary[i-1]*(cpih_vs_salary$cpih_change[i])/100)+
-      cpih_vs_salary$cpih_matched_salary[i-1]
-  }
-}
-
-#Using cpih_matched_salary to compare against real salary per group
-ggplot()+
-  geom_line(data=cpih_vs_salary,
-            aes(x=date,
-                y=amount,
-                colour=group),
-            size=1)+
-  geom_line(data=cpih_vs_salary,
-            aes(x=date,
-                y=cpih_matched_salary,
-                colour=group),
-            size=1,
-            linetype=2)+
-  theme_light()+
-  scale_y_continuous(labels=dollar_format(prefix="£"),
-                     breaks=seq(2000,9000,1000),
-                     minor_breaks=seq(1000,10000,250),
-                     limits=c(1000,10000),
-                     expand=c(0,0))+
-  scale_x_date(date_breaks="1 year",
-               date_minor_breaks="3 months",
-               date_labels="%Y",
-               limits=as.Date(c("2009-07-01","2022-06-15")),
-               expand=c(0,0))+
-  labs(title="Inflation-Matched Salary vs Real Salary of NHS Doctors",
-       subtitle="Dashed Line = Inflation-Matched, Solid Line = Real Salary",
-       colour="Stage of Training")+
-  theme(plot.title=element_text(colour="#56B4E9",size=15),
-        panel.grid.major=element_line(size=1,colour="grey85"),
-        panel.grid.minor=element_line(colour="grey90"),
-        axis.title.x = element_text(vjust=-0.35),
-        axis.title.y = element_text(vjust=2.5), #shifting axis titles to give space
-        axis.ticks=element_line(size=1))+ #to match major grid size
-  xlab("Date")+
-  ylab("Monthly Salary")+
-  scale_colour_manual(values=c("#E69F00",
-                               "#56B4E9",
-                               "#009E73",
-                               "#F0E442",
-                               "#D55E00")) #compatible for colour-blind people
-```
-
-# Test Shiny App
-
-```{r test_shiny}
-#I used this to test my final shiny ui script prior to implementation
-
-
-#Loading all necessary libraries
-library(tidyverse)
-library(here)
-library(scales)
-library(shiny)
-library(shinyWidgets)
-library(later)
-library(ggpubr)
-
-
-#Making the shinyApp for combined col_df and cpih_vs_salary data frames
-
-#Creating df with columns for change, date, and groups only, adding cpih to 'group' column
-col_df <- data.frame(cpih_vs_salary$date,cpih_vs_salary$group,cpih_vs_salary$salary_change)
-colnames(col_df) <- c("date","group","change")
-
-temp_cpih_df <- data.frame(cpih_vs_salary$date,cpih_vs_salary$cpih)
-temp_cpih_df <- temp_cpih_df[c(1:148),]
-temp_cpih_df$group <- "CPIH"
-temp_cpih_df <- temp_cpih_df[,c(1,3,2)]
-colnames(temp_cpih_df) <- c("date","group","change")
-
-col_df <- rbind(col_df,temp_cpih_df)
-
-#Creating a list of months from the 148 available
-choices_month <- as.Date(col_df$date[c(1:148)])
-
-#User Interface defined as ui, with settings as desired
-ui <- fluidPage(
-  titlePanel(tags$span(style="color:#56B4E9",
-                       "Comparing NHS Doctor Salary to CPIH")),
-  titlePanel(tags$h4("From Sept 2009 to Dec 2021")),
-  wellPanel(
-    sliderTextInput(inputId="date",
-                    label="Select Date:",
-                    choices=choices_month,
-                    selected=choices_month[148],
-                    animate=animationOptions(interval=800))
-  ),
-  mainPanel(plotOutput(outputId="plot",inline=TRUE)
-  )
-)
-
-#Server function to define plot
-server <- function(input,output){
-  
-  #Reactive expression to streamline shiny
-  dataInput <- reactive({
-    req(input$date)
-  })
-  
-  #Plotting both cpih_vs_salary and col_df onto output$plot using ggarrange
-  output$plot <- renderPlot({
-    
-    
-    #Plotting cumulative salary loss, using cpih_vs_salary & geom_line
-    loss_plot <- ggplot()+
-      geom_line(data=cpih_vs_salary %>% filter(date<=input$date),
-                aes(x=date,
-                    y=cumulative_income_lost,
-                    colour=group),size=1)+
-      theme_light()+
-      scale_y_continuous(labels=dollar_format(prefix="£"),
-                         breaks=seq(0,50000,5000),
-                         minor_breaks=seq(-2000,50000,1000),
-                         limits=c(-2000,48000),
-                         expand=c(0,0))+
-      scale_x_date(date_breaks="1 year",
-                   date_minor_breaks="3 months",
-                   date_labels="%Y",
-                   limits=as.Date(c("2009-07-01","2022-06-15")),
-                   expand=c(0,0))+
-      labs(title="Cumulative Salary Lost to Inflation",
-           subtitle=paste("Date:",format(as.Date(input$date),"%b %Y"),"; Sept 2009 = 0"))+
-      theme(plot.title=element_text(colour="#56B4E9",face="bold"),
-            panel.grid.major=element_line(size=1,colour="grey85"),
-            panel.grid.minor=element_line(colour="grey90"),
-            axis.title.x = element_text(vjust=-0.35),
-            axis.title.y = element_text(vjust=2.5),
-            legend.position="none", #remove legend, since col_plot has one already
-            axis.ticks=element_line(size=1))+ #to match major grid size
-      xlab("Date")+
-      ylab("Cumulative Salary Loss")+
-      scale_colour_manual(values=c("#E69F00",
-                                   "#56B4E9",
-                                   "#009E73",
-                                   "#F0E442",
-                                   "#D55E00")) #compatible for colour-blind people
-      
-    
-    
-    #Plotting monthly % changes in salary and inflation, using col_df & geom_col
-    col_plot <- ggplot()+
-      geom_col(data=col_df %>% filter(date==input$date),
-               aes(x=group,y=change,fill=group))+
-      scale_fill_manual(values=c("#E69F00",
-                                 "#56B4E9",
-                                 "#009E73",
-                                 "#F0E442",
-                                 "#D55E00",
-                                 "#888888"))+
-      theme_light()+
-      labs(title="Change in Salary and CPIH",
-           subtitle=paste("Date:",format(as.Date(input$date),"%b %Y"),"; Sept 2009 = 0"),
-           fill="Group")+
-      theme(plot.title=element_text(colour="#56B4E9",face="bold"),
-            panel.grid.major=element_line(size=1,colour="grey85"),
-            panel.grid.minor=element_line(colour="grey90"),
-            axis.ticks=element_line(size=1),
-            axis.title.x = element_text(vjust=-0.35),
-            axis.title.y = element_text(vjust=2.5))+
-      xlab("Group")+
-      ylab("Percentage Change")+
-      scale_x_discrete(labels=c("CCT","ST","CT","FY2","FY1","CPIH"))+
-      scale_y_continuous(limits=c(-8,38),
-                         breaks=seq(-5,35,5),
-                         minor_breaks=seq(-8,38,1),
-                         expand=c(0,0))
-    
-    
-    
-    #Plotting real vs inflation-matched salary, using cpih_vs_salary & geom_line
-    match_plot <- ggplot()+
-      geom_line(data=cpih_vs_salary %>% filter(date<=input$date),
-                aes(x=date,
-                    y=amount,
-                    colour=group),
-                size=1)+
-      geom_line(data=cpih_vs_salary,
-                aes(x=date,
-                    y=cpih_matched_salary,
-                    colour=group),
-                size=1,
-                linetype=2)+
-      theme_light()+
-      scale_y_continuous(labels=dollar_format(prefix="£"),
-                         breaks=seq(2000,9000,1000),
-                         minor_breaks=seq(1000,10000,250),
-                         limits=c(1000,10000),
-                         expand=c(0,0))+
-      scale_x_date(date_breaks="1 year",
-                   date_minor_breaks="3 months",
-                   date_labels="%Y",
-                   limits=as.Date(c("2009-07-01","2022-06-15")),
-                   expand=c(0,0))+
-      labs(title="Inflation-Matched vs Real Salary",
-           subtitle=paste("Date:",format(as.Date(input$date),"%b %Y"),
-                          ";Dashed = Inflation-Matched, Solid = Real Salary"),
-           colour="Stage of Training")+
-      theme(plot.title=element_text(colour="#56B4E9",face="bold"),
-            panel.grid.major=element_line(size=1,colour="grey85"),
-            panel.grid.minor=element_line(colour="grey90"),
-            axis.title.x = element_text(vjust=-0.35),
-            legend.position="none", #remove legend, since col_plot has one already
-            axis.title.y = element_text(vjust=2.5), #shifting axis titles to give space
-            axis.ticks=element_line(size=1))+ #to match major grid size
-      xlab("Date")+
-      ylab("Monthly Salary")+
-      scale_colour_manual(values=c("#E69F00",
-                                   "#56B4E9",
-                                   "#009E73",
-                                   "#F0E442",
-                                   "#D55E00")) #compatible for colour-blind people
-    
-    
-    
-    #Using ggarrange to merge the plots into one
-    ggarrange(loss_plot,match_plot,col_plot,ncol=3,nrow=1)
-  })
-}
-
-#Creating the app
-shinyApp(ui,server)
-
-```
-
-
-
-# Setting Up
-Text
+## Setting Up
+Below is the set-up needed to run all my code and visualisations.
 
 ```{r libraries}
 #Loading all necessary libraries
-library(tidyverse)
-library(here)
-library(pdftools)
-```
-
-# Data Origins
-Text
-
-Mention how I didn't include Jan-March 2007 data because they don't separate specialist from staff grade incomes, thus it isn't fair to compare. From April onwards they do, so I can compare them fairly.
-
-I chose the media FTE because, by the NHS's account, it is a "more robust indicator of typical pay"
-
-### I found that the data from 2021 contained salary breakdowns from 2010. Since I had pdf data from June 2007 until December 2008, and from August 2010 until December 2021, I needed data from March 2009 to September 2010. I found three sheets that provided this data, specifically:
-Data from Jan-March 2009 until September 2012 from: https://digital.nhs.uk/data-and-information/publications/statistical/nhs-staff-earnings-estimates/nhs-staff-earnings-estimates-to-september-2012
-
-Data until December 2021 from:https://digital.nhs.uk/data-and-information/publications/statistical/nhs-staff-earnings-estimates/december-2021-provisional-statistics
-
-Data from June 2007 to December 2008, from various links (pdf data)
-
-### Talk about how the data from 2009 to 2010 is inevitably 
-
-### Thus best to compare data from August 2010 onwards
-```{r data}
+library(tidyverse) #To process and graph the data
+library(here) #To easily set the working directory
+library(pdftools) #To extract the data from the pdf
+library(data.table) #To work with the pdf data
+library(scales) #To improve visualisation/scales of data
+library(shiny) #To create an interactive graph
+library(shinyWidgets) #To create nicer interactive graphs
+library(ggpubr) #To combine graphs together, with flexible sizes
 
 ```
 
 
+## PDF Data Preparation
+Before I knew the pdf data did not contain the break-downs I wanted, I wrote a script to extract the data. This is outlined below.
 
-# Data Preparation
-
-I created a function that would extract the required data from the 7 pdf files of 2007-2008. It would have been faster to extract the information by hand, but I enjoyed the challenge and I learned a new skill.
-
-```{r preparation pdfs, message=TRUE}
+```{r pdf_prep, message=TRUE}
 #Creating function to extract salary data from .pdf file
-pdf_extract <- function(raw){
+data_extract <- function(raw){
   
   #Splits single pages
   raw <- map(raw,~str_split(.x,"\\n") %>% unlist())
@@ -512,7 +101,12 @@ pdf_extract <- function(raw){
   
   #Renaming the rows to be code-friendly
   data_table[1] <- c("fy1","fy2","reg","con","spec","staff")
-
+  colnames(data_table) <- c("role","median_salary")
+  
+  #Adding a new column for the date and rearranging
+  data_table$date <- c(NA,NA,NA,NA,NA,NA)
+  data_table <- data_table[c(1,3,2)]
+  
   #outputting end data frame, so it is use-able by map_df
   data_table
   #end of function
@@ -523,7 +117,9 @@ pdf_extract <- function(raw){
 pdf_list <- list.files(here("data","raw","pdf"))
 
 #creating df as a master df for all data from all pdfs
-pdf_data <- data.frame(role=c("fy1","fy2","reg","con","spec","staff"))
+pdf_data <- data.frame(role=c("fy1","fy2","reg","con","spec","staff"),
+                       date=c(NA,NA,NA,NA,NA,NA),
+                       median_salary=c(NA,NA,NA,NA,NA,NA))
 
 #For loop that works through the pdf files in my raw data
 for (i in c(1:length(pdf_list))){
@@ -531,25 +127,533 @@ for (i in c(1:length(pdf_list))){
   #Extracting pdf from folder and turns it into a string of text
   raw_table <- map(here("data","raw","pdf",pdf_list[i]),pdf_text)
   
-  #Applying pdf_extract function on raw data
-  data_table <- map_df(raw_table,pdf_extract)
+  #Applying data_extract function on raw data
+  data_table <- map_df(raw_table,data_extract)
+  
+  #adding date to data table
+  data_table$date <- sub(".pdf","",pdf_list[i])
   
   #Adding the looped data_table to pdf_data
-  pdf_data[,i+1] <- data_table[,2]
+  pdf_data <- rbind(pdf_data,data_table)
   
-  #changing the column names to match the data
-  colnames(pdf_data)[i+1] <- sub(".pdf","",pdf_list[i])
+  if(i==length(pdf_list)){
+    pdf_data <- pdf_data[-c(1:6),]
+    rownames(pdf_data) <- c(1:length(pdf_data[,1]))
+  }
+  #End of loop
 }
 
+#Editing date format to be code-friendly, adding 01 to the front to be compatible with as.Date
+pdf_data$date <- paste(pdf_data$date,"01",sep="-")
+pdf_data$date <- as.Date(pdf_data$date,format="%Y-%m-%d")
+pdf_data <- pdf_data[order(pdf_data$date),]
+
 #Saving data to 'refined' data folder
-write.csv(pdf_data,here("data","refined","pdf_data.csv"),row.names=TRUE)
+write.csv(pdf_data,here("data","refined","pdf_data.csv"))
 ```
-I 
 
-Explanation of the groups I want to filter in
-#These are Consultant, Speciality Registrar, Core Training, FY1, and FY2 staff groups
-#These are the training posts or end-of-training post (consultant), so are relevant to most doctors
-# Mention why there is a dip in pay during August despite the CIPH not changing
-# Mention why not using splitLayout
 
-To get an idea of the methods/data/etc used, you can find the repository for this project by [clicking here](https://github.com/hvlabat/nhs_income_vs_inflation).
+As is now evident, the data does not contain any information about Core Training years, making it unfit for my project. However, learning how to extract table data from a pdf was invaluable, and I am sure I will use this skill later in my career.
+
+
+## CSV Data Preparation
+Next, I extracted the data from the CSV files. This was comparatively straightforward.
+
+I wanted to extract the salary data titled "basic pay per FTE", which refers to the monthly salary of a doctor per Full Time Equivalent, implying this is what a fully working doctor at that grade would get paid, on average.
+
+```{r csv_salary_prep, message=TRUE}
+#Extracting data into data frame
+salary_df <- read_csv(here("data","raw","csv","2010-08-2021-12.csv"))
+
+#Extracting only date, staff group, payment type, and amount
+salary_df <- salary_df %>% select("Date","Staff Group","Payment type","Amount")
+
+#Renaming column titles to be code-friendly
+names(salary_df) <- c("date","group","pay_code","amount")
+
+
+#Creating a vector of the group roles we want to filter in
+target_groups <- c("Consultant","Specialty Registrar","Core Training",
+                   "Foundation Doctor Year 2","Foundation Doctor Year 1")
+
+#filtering in the desired pay code data
+salary_df <- salary_df %>% filter(group %in% target_groups,
+                     pay_code=="PUBGRP_010_BASIC_PAY_PER_FTE")
+
+#Removing pay_code since it is now not needed
+salary_df <- salary_df[,-c(3)]
+
+#Ensuring 'date' column is considered date data
+salary_df$date <- as.Date(salary_df$date,format="%Y-%m-%d")
+
+#creating df to store salary change data from upcoming loop
+salary_change_df <- data.frame(NA,NA,NA,NA)
+colnames(salary_change_df) <- c("date","group","amount","salary_change")
+salary_change_df$date <- as.Date(salary_change_df$date,format="%Y-%m-%d")
+
+
+#For loop to calculate % change in salary between months for each group
+for (i in c(1:length(target_groups))){
+  #Creating temporary df organising pay data by group and in date order
+  temp_df <- filter(salary_df,group==target_groups[i])
+  temp_df <- temp_df[order(temp_df$date),]
+  
+  #Finding % change in salary per month compared to August 2010, for specified group
+  for (val in c(1:nrow(filter(salary_df,group==target_groups[i])))){
+    temp_df$salary_change[val] <- as.numeric(100*(temp_df[val,3]-temp_df[1,3])/temp_df[1,3])
+  }
+  
+  #Adding temp_df to salary_change_df
+  salary_change_df <- rbind(salary_change_df,temp_df)
+  
+  #Removing superfluous NA row from salary_change_df
+  if (i==length(target_groups)){
+    salary_change_df <- salary_change_df[-1,]
+    rownames(salary_change_df) <- c(1:length(salary_change_df[,1]))
+  }
+  #End of loop
+}
+
+#Creating df to measure mean salary change across all groups, over time
+mean_salary_change_df <- salary_change_df %>% 
+  group_by(date) %>%
+  summarise(mean_salary_change=mean(salary_change))
+
+
+#Saving both pieces of data to 'refined' data folder
+write.csv(salary_change_df,here("data","refined","salary_change.csv"))
+write.csv(mean_salary_change_df,here("data","refined","mean_salary_change.csv"))
+
+```
+
+The CPIH data I extracted is the total CPIH, without the breakdowns:
+
+```{r csv_inflation_prep, message=TRUE}
+#Extracting data into data frame
+cpih_df <- read_csv(here("data","raw","csv","cpih01-time-series-v20.csv"))
+
+#Removing unneeded columns and renaming remaining ones to be code-friendly
+cpih_df <- cpih_df[,c(1,2,7)]
+names(cpih_df) <- c("cpih","date","code")
+
+#Filtering in the Overall CPIH index data, then removing since it is now not needed
+cpih_df <- cpih_df %>% filter(code=="Overall Index")
+cpih_df <- cpih_df[,c(2,1)]
+
+#Editing date format to be code-friendly, adding 01 to the front to be compatible with as.Date
+cpih_df$date <- paste("01",cpih_df$date,sep="-")
+cpih_df$date <- as.Date(cpih_df$date,format="%d-%b-%y")
+cpih_df <- cpih_df[order(cpih_df$date),]
+cpih_df$cpih <- as.numeric(cpih_df$cpih)
+
+#Removing dates before 2009-09-30, i.e. when the NHS salary data starts
+cpih_df <- filter(cpih_df,date >= "2009-09-01")
+
+#Removing cpih dates from 2022-01-01 and 2022-02-01 i.e. when NHS salary data ends
+cpih_df <- filter(cpih_df,date <= "2021-12-01")
+
+#Reformatting cpih so that the index is not 2015=100 but 2009-09-01=100
+for (i in c(1:nrow(cpih_df))){
+  if (i!=nrow(cpih_df)){
+    cpih_df$cpih[i+1] <- as.numeric(100+(cpih_df[i+1,2]-cpih_df[1,2]))
+  }
+  else{
+    cpih_df$cpih[1] <- 100
+  }
+}
+
+#Creating new column for upcoming for loop
+cpih_df$cpih_change <- NA
+
+#For loop to calculate the change in cpih between months
+for (val in c(1:nrow(cpih_df))){
+  if (val==1){
+    cpih_df$cpih_change[val] <- 0
+  }
+  else{
+    cpih_df$cpih_change[val] <- as.numeric(cpih_df[val,2]-cpih_df[val-1,2])
+  }
+}
+
+
+#Saving data to 'refined' data folder
+write.csv(cpih_df,here("data","refined","cpih_data.csv"))
+
+```
+
+With both sets of data extracted and made code-friendly, I was ready to combine them and create graphs:
+
+```{r income_vs_inflation,message=TRUE}
+#Reformatting cpih so that the index starts at 0, to match salary change dfs
+cpih_df$cpih <- cpih_df$cpih-100
+
+#Creating a cpih df to be compatible with all groups of salary_change_df
+for (i in c(1:5)){
+  if (i==1){
+    cpih_all_groups <- cpih_df
+  }
+  else{
+    cpih_all_groups <- rbind(cpih_all_groups,cpih_df)
+  }
+}
+
+
+#First Data-Wrangling:
+#Comparing mean salary data with cpih data
+
+#Merging mean data and cpih data & removing superfluous date column
+cpih_vs_mean_salary <- cbind(mean_salary_change_df,cpih_df)
+cpih_vs_mean_salary <- cpih_vs_mean_salary[,-3]
+
+#Calculating difference between cpih and mean salary change
+cpih_vs_mean_salary$diff <- cpih_vs_mean_salary$mean_salary_change-cpih_vs_mean_salary$cpih
+
+
+
+#Second Data-Wrangling:
+#Calculating effective money gained/lost from beginning to end of time sequence
+#For average income of all doctors
+
+#The comparison income will be the mean income per month of all doctors
+mean_income <- mean(salary_change_df$amount)
+
+#Altering cpih_vs_mean_salary to include a column with cumulative income change
+for (i in c(1:nrow(cpih_vs_mean_salary))){
+  if (i==1){
+    cpih_vs_mean_salary$cumulative_income_change[1] <- 0 #set baseline
+  }
+  else{
+    cpih_vs_mean_salary$cumulative_income_change[i] <- 
+      (mean_income*(cpih_vs_mean_salary$diff[i]/100))+
+      cpih_vs_mean_salary$cumulative_income_change[i-1]
+  }
+}
+
+#Changing data to represent cumulative income lost due to inflation
+cpih_vs_mean_salary$cumulative_income_lost <- -cpih_vs_mean_salary$cumulative_income_change
+
+
+
+#Third Data-Wrangling:
+#Comparing per-group salary data with cpih data
+
+#Merging all groups data and cpih data & removing superfluous date column
+cpih_vs_salary <- cbind(salary_change_df,cpih_all_groups)
+cpih_vs_salary <- cpih_vs_salary[,-5]
+
+#Calculating difference between cpih and salary change
+cpih_vs_salary$diff <- cpih_vs_salary$salary_change-cpih_vs_salary$cpih
+
+
+
+#Fourth Data-Wrangling:
+#Calculating effective money gained/lost from beginning to end of time sequence
+#For each income of each doctor group
+
+#Creating group_change to measure income lost per group, with each group being 148 long
+for (i in c(1:nrow(cpih_vs_salary))){
+  if (i==1){
+    cpih_vs_salary$cumulative_income_lost[i] <- 0 #set beginning baseline
+  }
+  else if ((i-1)%%148==0){
+    cpih_vs_salary$cumulative_income_lost[i] <- 0 #set baseline for each group
+  }
+  else{
+    cpih_vs_salary$cumulative_income_lost[i] <- 
+      -((mean_income*(cpih_vs_salary$diff[i]/100))-
+      cpih_vs_salary$cumulative_income_lost[i-1])
+  }
+}
+
+#Ordering the 'group' column in order of descending seniority (consultant->fy1)
+cpih_vs_salary$group <- factor(cpih_vs_salary$group,
+                               levels=c("Consultant",
+                                        "Specialty Registrar",
+                                        "Core Training",
+                                        "Foundation Doctor Year 2",
+                                        "Foundation Doctor Year 1"))
+
+
+
+#FIfth Data-Wrangling:
+#Calculating how much doctors should be earning if their incomes consistently
+#increased with cpih since 2009, and comparing this to present income changes
+
+#Using cpih_change from cpih_df to calculate cpih-adjusted salary
+for (i in c(1:nrow(cpih_vs_salary))){
+  if (i==1){
+    cpih_vs_salary$cpih_matched_salary[i] <- cpih_vs_salary$amount[i] #set beginning baseline
+  }
+  else if ((i-1)%%148==0){
+    cpih_vs_salary$cpih_matched_salary[i] <- cpih_vs_salary$amount[i] #set baseline for each group
+  }
+  else{
+    cpih_vs_salary$cpih_matched_salary[i] <-
+      (cpih_vs_salary$cpih_matched_salary[i-1]*(cpih_vs_salary$cpih_change[i])/100)+
+      cpih_vs_salary$cpih_matched_salary[i-1]
+  }
+}
+
+
+#Saving data to 'refined' data folder
+write.csv(cpih_vs_salary,here("data","refined","cpih_vs_salary.csv"))
+
+```
+
+Each step of data-wrangling is important for the overall visualisation of the data, though I eventually opted to use only the last three steps for my graphs.
+
+
+# Visualisation
+
+With the data processed, I could now visualise it. I opted for an interactive R Shiny application, as I believe it gives a better representation of the change over time (due to the option to animate), and lets the user tangibly interact with the data.
+
+I aimed to make the visualisation accessible to people with colour-blindness, and as visually simple but elegant as possible. I tried to include subtle visual indications that would help the user interact with the graph, such as thicker lines for main breaks and a neutral gray background.
+
+As previously mentioned, I included a bonus, smaller graph to indicate the percentage change in salary and inflation, as I feel it gives the user a better intuitive grasp of the data; it allowed me to understand why the reasons behind the trends seen in the line graphs.
+
+```{r shiny_app, message=TRUE,results="hide"}
+#Creating df with columns for change, date, and groups only, adding cpih to 'group' column
+col_df <- data.frame(cpih_vs_salary$date,cpih_vs_salary$group,cpih_vs_salary$salary_change)
+colnames(col_df) <- c("date","group","change")
+
+temp_cpih_df <- data.frame(cpih_vs_salary$date,cpih_vs_salary$cpih)
+temp_cpih_df <- temp_cpih_df[c(1:148),]
+temp_cpih_df$group <- "CPIH"
+temp_cpih_df <- temp_cpih_df[,c(1,3,2)]
+colnames(temp_cpih_df) <- c("date","group","change")
+
+col_df <- rbind(col_df,temp_cpih_df)
+
+
+
+#Creating R Shiny interactive elements:
+
+#Selector of dates to display
+    sliderTextInput(inputId="date",
+                    label="Select Date:",
+                    choices=as.Date(col_df$date[c(1:148)]), #list of months
+                    selected=as.Date(col_df$date[148]),
+                    grid=TRUE,
+                    animate=animationOptions(interval=800)
+                    )
+
+    #Selector of graphs to display
+    selectInput(inputId="plot",
+                label="Select Desired Plot:",
+                choices=c("Cumulative Salary Lost to Inflation",
+                                "Real vs Inflation-Matched Salary")
+                )
+
+  #Reactive expression to speed up update of plotted data and thus of shiny graph
+  filtered_df <- reactive({
+    cpih_vs_salary %>% filter(date<=input$date)
+  })
+  
+  
+  #Plotting both cpih_vs_salary and col_df onto output$plot using ggarrange
+  
+  #Using if statements to allow selectInput to switch between main plots
+  
+  observeEvent(input$plot,{
+    
+    if(input$plot=="Cumulative Salary Lost to Inflation"){
+      output$plot <- renderPlot({
+        
+        #Plotting cumulative salary loss, using filtered_df() & geom_line
+        loss_plot <- ggplot()+
+          geom_line(data=filtered_df(),
+                    aes(x=date,
+                        y=cumulative_income_lost,
+                        colour=group),size=1)+
+          theme_light()+
+          scale_y_continuous(labels=dollar_format(prefix="£"),
+                             breaks=seq(0,50000,5000),
+                             minor_breaks=seq(-2000,50000,1000),
+                             limits=c(-2000,48000),
+                             expand=c(0,0))+
+          scale_x_date(date_breaks="1 year",
+                       date_minor_breaks="3 months",
+                       date_labels="%Y",
+                       limits=as.Date(c("2009-07-01","2022-06-15")),
+                       expand=c(0,0))+
+          labs(title="Cumulative Salary Lost to Inflation",
+               subtitle=paste("Date:",format(as.Date(input$date),"%b %Y"),"; Sept 2009 = 0"))+
+          theme(plot.title=element_text(colour="#56B4E9",face="bold"),
+                panel.grid.major=element_line(size=1,colour="grey85"),
+                panel.grid.minor=element_line(colour="grey90"),
+                axis.title.x = element_text(vjust=-0.35),
+                axis.title.y = element_text(vjust=2.5),
+                legend.position="none", #remove legend, since col_plot has one already
+                axis.ticks=element_line(size=1))+ #to match major grid size
+          xlab("Date")+
+          ylab("Cumulative Salary Loss")+
+          scale_colour_manual(values=c("#E69F00",
+                                       "#56B4E9",
+                                       "#009E73",
+                                       "#F0E442",
+                                       "#D55E00")) #compatible for colour-blind people
+        
+        
+        #Plotting monthly % changes in salary and inflation, using col_df & geom_col
+        col_plot <- ggplot()+
+          geom_col(data=col_df %>% filter(date==input$date),
+                   aes(x=group,y=change,fill=group))+
+          scale_fill_manual(values=c("#E69F00",
+                                     "#56B4E9",
+                                     "#009E73",
+                                     "#F0E442",
+                                     "#D55E00",
+                                     "#888888"))+
+          theme_light()+
+          labs(title="Change in Salary and CPIH",
+               subtitle=paste("Date:",format(as.Date(input$date),"%b %Y"),"; Sept 2009 = 0"),
+               fill="Group")+
+          theme(plot.title=element_text(colour="#56B4E9",face="bold"),
+                panel.grid.major=element_line(size=1,colour="grey85"),
+                panel.grid.minor=element_line(colour="grey90"),
+                axis.ticks=element_line(size=1),
+                axis.title.x = element_text(vjust=-0.35),
+                axis.title.y = element_text(vjust=2.5))+
+          xlab("Group")+
+          ylab("Percentage Change")+
+          scale_x_discrete(labels=c("CCT","ST","CT","FY2","FY1","CPIH"))+
+          scale_y_continuous(limits=c(-8,38),
+                             breaks=seq(-5,35,5),
+                             minor_breaks=seq(-8,38,1),
+                             expand=c(0,0))
+
+        #Using ggarrange to merge the plots into one
+        ggarrange(loss_plot,
+                  col_plot,
+                  ncol=2,nrow=1)
+      })
+    }
+    
+    else{
+      output$plot <- renderPlot({
+        
+        #Plotting monthly % changes in salary and inflation, using col_df & geom_col
+        col_plot <- ggplot()+
+          geom_col(data=col_df %>% filter(date==input$date),
+                   aes(x=group,y=change,fill=group))+
+          scale_fill_manual(values=c("#E69F00",
+                                     "#56B4E9",
+                                     "#009E73",
+                                     "#F0E442",
+                                     "#D55E00",
+                                     "#888888"))+
+          theme_light()+
+          labs(title="Change in Salary and CPIH",
+               subtitle=paste("Date:",format(as.Date(input$date),"%b %Y"),"; Sept 2009 = 0"),
+               fill="Group")+
+          theme(plot.title=element_text(colour="#56B4E9",face="bold"),
+                panel.grid.major=element_line(size=1,colour="grey85"),
+                panel.grid.minor=element_line(colour="grey90"),
+                axis.ticks=element_line(size=1),
+                axis.title.x = element_text(vjust=-0.35),
+                axis.title.y = element_text(vjust=2.5))+
+          xlab("Group")+
+          ylab("Percentage Change")+
+          scale_x_discrete(labels=c("CCT","ST","CT","FY2","FY1","CPIH"))+
+          scale_y_continuous(limits=c(-8,38),
+                             breaks=seq(-5,35,5),
+                             minor_breaks=seq(-8,38,1),
+                             expand=c(0,0))
+        
+        
+        
+        #Plotting real vs inflation-matched salary, using filtered_df() & geom_line
+        match_plot <- ggplot()+
+          geom_line(data=filtered_df(),
+                    aes(x=date,
+                        y=amount,
+                        colour=group),
+                    size=1)+
+          geom_line(data=filtered_df(),
+                    aes(x=date,
+                        y=cpih_matched_salary,
+                        colour=group),
+                    size=1,
+                    linetype=2)+
+          theme_light()+
+          scale_y_continuous(labels=dollar_format(prefix="£"),
+                             breaks=seq(2000,9000,1000),
+                             minor_breaks=seq(1000,10000,250),
+                             limits=c(1000,10000),
+                             expand=c(0,0))+
+          scale_x_date(date_breaks="1 year",
+                       date_minor_breaks="3 months",
+                       date_labels="%Y",
+                       limits=as.Date(c("2009-07-01","2022-06-15")),
+                       expand=c(0,0))+
+          labs(title="Real vs Inflation-Matched Salary",
+               subtitle=paste("Date:",format(as.Date(input$date),"%b %Y"),
+                              "; Dashed = Inflation-Matched, Solid = Real Salary"),
+               colour="Stage of Training")+
+          theme(plot.title=element_text(colour="#56B4E9",face="bold"),
+                panel.grid.major=element_line(size=1,colour="grey85"),
+                panel.grid.minor=element_line(colour="grey90"),
+                axis.title.x = element_text(vjust=-0.35),
+                legend.position="none", #remove legend, since col_plot has one already
+                axis.title.y = element_text(vjust=2.5), #shifting axis titles to give space
+                axis.ticks=element_line(size=1))+ #to match major grid size
+          xlab("Date")+
+          ylab("Monthly Salary")+
+          scale_colour_manual(values=c("#E69F00",
+                                       "#56B4E9",
+                                       "#009E73",
+                                       "#F0E442",
+                                       "#D55E00")) #compatible for colour-blind people
+        
+        #Using ggarrange to merge the plots into one
+        ggarrange(match_plot,
+                  col_plot,
+                  ncol=2,nrow=1)
+      })
+    }
+  })
+
+#Main output
+plotOutput(outputId="plot")
+  
+```
+
+The above code provides the following graphs of data from September 2009 to December 2021:
+
+```{r interactive_graph,echo=FALSE}
+#Selector of dates to display
+    sliderTextInput(inputId="date",
+                    label="Select Date:",
+                    choices=as.Date(col_df$date[c(1:148)]), #list of months
+                    selected=as.Date(col_df$date[148]),
+                    grid=TRUE,
+                    animate=animationOptions(interval=800),
+                    width="100%"
+                    )
+
+#Selector of graphs to display
+    selectInput(inputId="plot",
+                label="Select Desired Plot:",
+                choices=c("Cumulative Salary Lost to Inflation",
+                                "Real vs Inflation-Matched Salary"),
+                width="100%"
+                )
+#Main output
+plotOutput(outputId="plot",
+           width="100%")
+```
+
+
+All elements are made to be viewed and interacted with via a wide screen. Whilst they would certainly work on a mobile device, much of the data would be compressed and less aesthetically pleasing.
+
+This was a difficult but rewarding experience, and I truly enjoyed learning how to code the app.
+
+
+# Discussion
+Looking at the two main graphs, the first thing I noticed was the dips in salary every August. In discussing with qualified physicians, I learned that this is when doctors start their new posts; evidently the NHS deems them less needing of a full salary, though this corrects itself by September.
+
+The second point I noticed was how the 'entrance roles' (i.e. FY1 and CT) have incomes that now match inflation, but the roles one becomes locked into (i.e. FY2, ST, and Consultancy) continue to receive changes in income that fall below the changes in inflation. It is hard to see why this would be done accidentally; this could be the NHS' way of keeping costs down whilst - on the surface - appearing to match inflation with their salaries. By the time doctors encounter the non-matched salaries, they are already locked into their training roles, and leaving would have dire consequences on their professional life.
+
+# Summary
+
+You can find the repository for this project by [clicking here](https://github.com/hvlabat/nhs_income_vs_inflation).

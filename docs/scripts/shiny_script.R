@@ -7,9 +7,7 @@ library(here)
 library(scales)
 library(shiny)
 library(shinyWidgets)
-library(later)
 library(ggpubr)
-library(rsconnect)
 
 
 #Making the shinyApp for combined col_df and cpih_vs_salary data frames
@@ -41,15 +39,17 @@ ui <- fluidPage(
                     choices=as.Date(col_df$date[c(1:148)]), #list of months
                     selected=as.Date(col_df$date[148]),
                     grid=TRUE,
-                    animate=animationOptions(interval=800)
+                    animate=animationOptions(interval=800),
+                    width="100%"
                     ),
     selectInput(inputId="plot",
                 label="Select Desired Plot:",
                 choices=c("Cumulative Salary Lost to Inflation",
-                                "Real vs Inflation-Matched Salary")
+                                "Real vs Inflation-Matched Salary"),
+                width="100%"
                 )
     ),
-  mainPanel(plotOutput(outputId="plot")
+  mainPanel(plotOutput(outputId="plot",width="100%")
   )
 )
 

@@ -7,7 +7,6 @@ library(here)
 library(scales)
 
 #Extracting required data into data frame
-mean_salary_change_df <- read_csv(here("data","refined","mean_salary_change.csv"))
 cpih_df <- read_csv(here("data","refined","cpih_data.csv"))
 salary_change_df <- read_csv(here("data","refined","salary_change.csv"))
 
@@ -136,6 +135,7 @@ cpih_vs_salary$group <- factor(cpih_vs_salary$group,
                                         "Foundation Doctor Year 2",
                                         "Foundation Doctor Year 1"))
 
+
 #Plotting the above, with changes to make it aesthetically pleasing
 p_group_cumulative <- ggplot(cpih_vs_salary,aes(x=date,
                                                 y=cumulative_income_lost,
@@ -234,4 +234,5 @@ ggplot()+
                                "#D55E00")) #compatible for colour-blind people
 
 
-
+#Saving data to 'refined' data folder
+write.csv(cpih_vs_salary,here("data","refined","cpih_vs_salary.csv"))

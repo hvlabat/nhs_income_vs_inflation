@@ -87,13 +87,8 @@ pdf_data$date <- paste(pdf_data$date,"01",sep="-")
 pdf_data$date <- as.Date(pdf_data$date,format="%Y-%m-%d")
 pdf_data <- pdf_data[order(pdf_data$date),]
 
-
-#Plotting the data
-p_pdf <- ggplot(pdf_data,aes(x=date,y=median_salary,color=role))
-
-p_pdf+geom_point()+
-  geom_line(aes(group=role))
-
+#Visualising the data in a neat table
+kable(pdf_data)
 
 #Saving data to 'refined' data folder
 write.csv(pdf_data,here("data","refined","pdf_data.csv"))
