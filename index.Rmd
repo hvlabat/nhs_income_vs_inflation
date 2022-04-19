@@ -5,7 +5,8 @@ date: "`r Sys.Date()`"
 runtime: shiny
 output:
   html_document:
-    theme: sandstone
+    theme: flatly
+    highlight: pygments
 ---
 ```{r global-options, include=FALSE}
 #This sets a few defaults for this entire markdown, to make it visually constant
@@ -429,137 +430,150 @@ col_df <- rbind(col_df,temp_cpih_df)
 #Creating R Shiny interactive elements:
 
 #Selector of dates to display
-    sliderTextInput(inputId="date",
-                    label="Select Date:",
-                    choices=as.Date(col_df$date[c(1:148)]), #list of months
-                    selected=as.Date(col_df$date[148]),
-                    grid=TRUE,
-                    animate=animationOptions(interval=800)
-                    )
-
-    #Selector of graphs to display
-    selectInput(inputId="plot",
-                label="Select Desired Plot:",
-                choices=c("Cumulative Salary Lost to Inflation",
-                                "Real vs Inflation-Matched Salary")
+sliderTextInput(inputId="date",
+                label="Select Date:",
+                choices=as.Date(col_df$date[c(1:148)]), #list of months
+                selected=as.Date(col_df$date[148]),
+                grid=TRUE,
+                animate=animationOptions(interval=800),
+                width="100%"
                 )
 
-  #Reactive expression to speed up update of plotted data and thus of shiny graph
-  filtered_df <- reactive({
-    cpih_vs_salary %>% filter(date<=input$date)
-  })
-  
-  
-  #Plotting both cpih_vs_salary and col_df onto output$plot using ggarrange
-  
-  #Using if statements to allow selectInput to switch between main plots
-  
-  observeEvent(input$plot,{
-    
-    if(input$plot=="Cumulative Salary Lost to Inflation"){
-      output$plot <- renderPlot({
-        
-        #Plotting cumulative salary loss, using filtered_df() & geom_line
-        loss_plot <- ggplot()+
-          geom_line(data=filtered_df(),
-                    aes(x=date,
-                        y=cumulative_income_lost,
-                        colour=group),size=1)+
-          theme_light()+
-          scale_y_continuous(labels=dollar_format(prefix="£"),
-                             breaks=seq(0,50000,5000),
-                             minor_breaks=seq(-2000,50000,1000),
-                             limits=c(-2000,48000),
-                             expand=c(0,0))+
-          scale_x_date(date_breaks="1 year",
-                       date_minor_breaks="3 months",
-                       date_labels="%Y",
-                       limits=as.Date(c("2009-07-01","2022-06-15")),
-                       expand=c(0,0))+
-          labs(title="Cumulative Salary Lost to Inflation",
-               subtitle=paste("Date:",format(as.Date(input$date),"%b %Y"),"; Sept 2009 = 0"))+
-          theme(plot.title=element_text(colour="#56B4E9",face="bold"),
-                panel.grid.major=element_line(size=1,colour="grey85"),
-                panel.grid.minor=element_line(colour="grey90"),
-                axis.title.x = element_text(vjust=-0.35),
-                axis.title.y = element_text(vjust=2.5),
-                legend.position="none", #remove legend, since col_plot has one already
-                axis.ticks=element_line(size=1))+ #to match major grid size
-          xlab("Date")+
-          ylab("Cumulative Salary Loss")+
-          scale_colour_manual(values=c("#E69F00",
-                                       "#56B4E9",
-                                       "#009E73",
-                                       "#F0E442",
-                                       "#D55E00")) #compatible for colour-blind people
-        
-        
-        #Plotting monthly % changes in salary and inflation, using col_df & geom_col
-        col_plot <- ggplot()+
-          geom_col(data=col_df %>% filter(date==input$date),
-                   aes(x=group,y=change,fill=group))+
-          scale_fill_manual(values=c("#E69F00",
-                                     "#56B4E9",
-                                     "#009E73",
-                                     "#F0E442",
-                                     "#D55E00",
-                                     "#888888"))+
-          theme_light()+
-          labs(title="Change in Salary and CPIH",
-               subtitle=paste("Date:",format(as.Date(input$date),"%b %Y"),"; Sept 2009 = 0"),
-               fill="Group")+
-          theme(plot.title=element_text(colour="#56B4E9",face="bold"),
-                panel.grid.major=element_line(size=1,colour="grey85"),
-                panel.grid.minor=element_line(colour="grey90"),
-                axis.ticks=element_line(size=1),
-                axis.title.x = element_text(vjust=-0.35),
-                axis.title.y = element_text(vjust=2.5))+
-          xlab("Group")+
-          ylab("Percentage Change")+
-          scale_x_discrete(labels=c("CCT","ST","CT","FY2","FY1","CPIH"))+
-          scale_y_continuous(limits=c(-8,38),
-                             breaks=seq(-5,35,5),
-                             minor_breaks=seq(-8,38,1),
-                             expand=c(0,0))
+#Selector of graphs to display
+selectInput(inputId="plot",
+            label="Select Desired Plot:",
+            choices=c("Cumulative Salary Lost to Inflation",
+                      "Real vs Inflation-Matched Salary"),
+            width="100%"
+            )
 
-        #Using ggarrange to merge the plots into one
-        ggarrange(loss_plot,
-                  col_plot,
-                  ncol=2,nrow=1)
-      })
-    }
+#Reactive expression to speed up update of plotted data and thus of shiny graph
+filtered_df <- reactive({
+    cpih_vs_salary %>% filter(date<=input$date)
+})
+
+
+#Plotting both cpih_vs_salary and col_df onto output$plot using ggarrange
+#Using if statements to allow selectInput to switch between main plots
+  
+observeEvent(input$plot,{
+  if(input$plot=="Cumulative Salary Lost to Inflation"){
+    output$plot <- renderPlot({
     
-    else{
-      output$plot <- renderPlot({
-        
-        #Plotting monthly % changes in salary and inflation, using col_df & geom_col
-        col_plot <- ggplot()+
-          geom_col(data=col_df %>% filter(date==input$date),
-                   aes(x=group,y=change,fill=group))+
-          scale_fill_manual(values=c("#E69F00",
-                                     "#56B4E9",
-                                     "#009E73",
-                                     "#F0E442",
-                                     "#D55E00",
-                                     "#888888"))+
-          theme_light()+
-          labs(title="Change in Salary and CPIH",
-               subtitle=paste("Date:",format(as.Date(input$date),"%b %Y"),"; Sept 2009 = 0"),
-               fill="Group")+
-          theme(plot.title=element_text(colour="#56B4E9",face="bold"),
-                panel.grid.major=element_line(size=1,colour="grey85"),
-                panel.grid.minor=element_line(colour="grey90"),
-                axis.ticks=element_line(size=1),
-                axis.title.x = element_text(vjust=-0.35),
-                axis.title.y = element_text(vjust=2.5))+
-          xlab("Group")+
-          ylab("Percentage Change")+
-          scale_x_discrete(labels=c("CCT","ST","CT","FY2","FY1","CPIH"))+
-          scale_y_continuous(limits=c(-8,38),
-                             breaks=seq(-5,35,5),
-                             minor_breaks=seq(-8,38,1),
-                             expand=c(0,0))
-        
+    #Plotting cumulative salary loss, using filtered_df() & geom_line
+    loss_plot <- ggplot()+
+      geom_line(data=filtered_df(),
+                aes(x=date,
+                    y=cumulative_income_lost,
+                    colour=group),
+                size=1)+
+      theme_light()+
+      scale_y_continuous(labels=dollar_format(prefix="£"),
+                         breaks=seq(0,50000,5000),
+                         minor_breaks=seq(-2000,50000,1000),
+                         limits=c(-2000,48000),
+                         expand=c(0,0))+
+      scale_x_date(date_breaks="1 year",
+                   date_minor_breaks="3 months",
+                   date_labels="%Y",
+                   limits=as.Date(c("2009-07-01","2022-06-15")),
+                   expand=c(0,0))+
+      labs(title="Cumulative Salary Lost to Inflation",
+           subtitle=paste("Range: Sep 2009 -",format(as.Date(input$date),"%b %Y"),
+                          "; Sep 2009 = 0"))+
+      theme(plot.title=element_text(colour="#56B4E9",face="bold"),
+            panel.grid.major=element_line(size=1,colour="grey85"),
+            panel.grid.minor=element_line(colour="grey90"),
+            axis.title.x = element_text(vjust=-0.35),
+            axis.title.y = element_text(vjust=2.5),
+            legend.position="none", #remove legend, since col_plot has one already
+            axis.ticks=element_line(size=1))+ #to match major grid size
+      xlab("Date")+
+      ylab("Cumulative Salary Loss")+
+      scale_colour_manual(values=c("#E69F00",
+                                   "#56B4E9",
+                                   "#009E73",
+                                   "#F0E442",
+                                   "#D55E00")) #compatible for colour-blind people
+    
+    #Plotting monthly % changes in salary and inflation, using col_df & geom_col
+    col_plot <- ggplot()+
+      geom_col(data=col_df %>% filter(date==input$date),
+               aes(x=group,y=change,fill=group))+
+      scale_fill_manual(values=c("#E69F00",
+                                 "#56B4E9",
+                                 "#009E73",
+                                 "#F0E442",
+                                 "#D55E00",
+                                 "#888888"),
+                        labels=c("Consultant (CCT)",
+                                 "Specialist Trainee (ST)",
+                                 "Core Trainee (CT)",
+                                 "Foundation Doctor Year 2 (FY2)",
+                                 "Foundation Doctor Year 1 (FY1)",
+                                 "Consumer Price Index with Housing (CPIH)"))+
+      theme_light()+
+      labs(title="Change in Salary and Inflation",
+           subtitle=paste("Date:",format(as.Date(input$date),"%b %Y"),
+                          "; Sep 2009 = 0"),
+           fill="Group")+
+      theme(plot.title=element_text(colour="#56B4E9",face="bold"),
+            panel.grid.major=element_line(size=1,colour="grey85"),
+            panel.grid.minor=element_line(colour="grey90"),
+            axis.ticks=element_line(size=1),
+            axis.title.x = element_text(vjust=-0.35),
+            axis.title.y = element_text(vjust=2.5))+
+      xlab("Group")+
+      ylab("Percentage Change")+
+      scale_x_discrete(labels=c("CCT","ST","CT","FY2","FY1","CPIH"))+
+      scale_y_continuous(limits=c(-8,38),
+                         breaks=seq(-5,35,5),
+                         minor_breaks=seq(-8,38,1),
+                         expand=c(0,0))
+    
+    #Using ggarrange to merge the plots into one
+    ggarrange(loss_plot,
+              col_plot,
+              ncol=2,nrow=1)
+    })
+  }
+  
+  else{
+    output$plot <- renderPlot({
+      #Plotting monthly % changes in salary and inflation, using col_df & geom_col
+      col_plot <- ggplot()+
+        geom_col(data=col_df %>% filter(date==input$date),
+        aes(x=group,y=change,fill=group,label=change))+
+        scale_fill_manual(values=c("#E69F00",
+                                   "#56B4E9",
+                                   "#009E73",
+                                   "#F0E442",
+                                   "#D55E00",
+                                   "#888888"),
+                          labels=c("Consultant (CCT)",
+                                   "Specialist Trainee (ST)",
+                                   "Core Trainee (CT)",
+                                   "Foundation Doctor Year 2 (FY2)",
+                                   "Foundation Doctor Year 1 (FY1)",
+                                   "Consumer Price Index with Housing (CPIH)"))+
+        theme_light()+
+        labs(title="Change in Salary and CPIH",
+             subtitle=paste("Date:",format(as.Date(input$date),"%b %Y"),
+                            "; Sep 2009 = 0"),
+             fill="Group")+
+        theme(plot.title=element_text(colour="#56B4E9",face="bold"),
+              panel.grid.major=element_line(size=1,colour="grey85"),
+              panel.grid.minor=element_line(colour="grey90"),
+              axis.ticks=element_line(size=1),
+              axis.title.x = element_text(vjust=-0.35),
+              axis.title.y = element_text(vjust=2.5))+
+        xlab("Group")+
+        ylab("Percentage Change")+
+        scale_x_discrete(labels=c("CCT","ST","CT","FY2","FY1","CPIH"))+
+        scale_y_continuous(limits=c(-8,38),
+                           breaks=seq(-5,35,5),
+                           minor_breaks=seq(-8,38,1),
+                           expand=c(0,0))
         
         
         #Plotting real vs inflation-matched salary, using filtered_df() & geom_line
@@ -587,8 +601,8 @@ col_df <- rbind(col_df,temp_cpih_df)
                        limits=as.Date(c("2009-07-01","2022-06-15")),
                        expand=c(0,0))+
           labs(title="Real vs Inflation-Matched Salary",
-               subtitle=paste("Date:",format(as.Date(input$date),"%b %Y"),
-                              "; Dashed = Inflation-Matched, Solid = Real Salary"),
+               subtitle=paste("Range: Sep 2009 -",format(as.Date(input$date),"%b %Y"),
+                              "; - - - = Inflation-Matched, ─── = Real Salary"),
                colour="Stage of Training")+
           theme(plot.title=element_text(colour="#56B4E9",face="bold"),
                 panel.grid.major=element_line(size=1,colour="grey85"),
@@ -609,7 +623,7 @@ col_df <- rbind(col_df,temp_cpih_df)
         ggarrange(match_plot,
                   col_plot,
                   ncol=2,nrow=1)
-      })
+    })
     }
   })
 
@@ -622,25 +636,27 @@ The above code provides the following graphs of data from September 2009 to Dece
 
 ```{r interactive_graph,echo=FALSE}
 #Selector of dates to display
-    sliderTextInput(inputId="date",
-                    label="Select Date:",
-                    choices=as.Date(col_df$date[c(1:148)]), #list of months
-                    selected=as.Date(col_df$date[148]),
-                    grid=TRUE,
-                    animate=animationOptions(interval=800),
-                    width="100%"
-                    )
+sliderTextInput(inputId="date",
+                label="Select Date:",
+                choices=as.Date(col_df$date[c(1:148)]), #list of months
+                selected=as.Date(col_df$date[148]),
+                grid=TRUE,
+                animate=animationOptions(interval=800),
+                width="100%",
+                )
 
 #Selector of graphs to display
-    selectInput(inputId="plot",
-                label="Select Desired Plot:",
-                choices=c("Cumulative Salary Lost to Inflation",
-                                "Real vs Inflation-Matched Salary"),
-                width="100%"
-                )
+selectInput(inputId="plot",
+            label="Select Desired Line Graph:",
+            choices=c("Cumulative Salary Lost to Inflation",
+                      "Real vs Inflation-Matched Salary"),
+            width="100%"
+            )
+
 #Main output
 plotOutput(outputId="plot",
            width="100%")
+
 ```
 
 
@@ -654,6 +670,6 @@ Looking at the two main graphs, the first thing I noticed was the dips in salary
 
 The second point I noticed was how the 'entrance roles' (i.e. FY1 and CT) have incomes that now match inflation, but the roles one becomes locked into (i.e. FY2, ST, and Consultancy) continue to receive changes in income that fall below the changes in inflation. It is hard to see why this would be done accidentally; this could be the NHS' way of keeping costs down whilst - on the surface - appearing to match inflation with their salaries. By the time doctors encounter the non-matched salaries, they are already locked into their training roles, and leaving would have dire consequences on their professional life.
 
-# Summary
+# Possible Extensions
 
 You can find the repository for this project by [clicking here](https://github.com/hvlabat/nhs_income_vs_inflation).
