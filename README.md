@@ -32,6 +32,8 @@ offers a more accurate display of the impact of inflation on income.
 ## Contents
 This project was coded using R. This project contains the following files and folders, listed as seen:
 
+**".gitignore"** - Specifies untracked files that Git should ignore and those it should focus on.
+
 **".Rhistory"** - Contains a history of the commands entered, generally unimportant.
 
 **"codebook.txt"** - File describing the nature of the data found in the **"refined"**" data folder of this project.
