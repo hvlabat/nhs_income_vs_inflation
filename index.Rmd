@@ -55,6 +55,8 @@ Below is the set-up needed to run all my code and visualisations.
 ```{r libraries}
 #Loading all necessary libraries. These are taken from renv, to maintain isolation, portability, and reproducibility (this is the R Studio updated version of packrat)
 
+renv::restore() #To restore libraries loaded for this project
+
 library(tidyverse) #To process and graph the data
 library(here) #To easily set the working directory
 library(pdftools) #To extract the data from the pdf

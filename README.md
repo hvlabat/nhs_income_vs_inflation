@@ -50,6 +50,8 @@ This project was coded using R. This project contains the following files and fo
 
 **"renv"** - A package-management system, used to ensure the isolation, portability, and reproducibility of this project. This is the R Studio updated version of packrat.
 
+**"renv.lock"** - Contains data on the packages stored in renv
+
 
 
 ## Instructions
