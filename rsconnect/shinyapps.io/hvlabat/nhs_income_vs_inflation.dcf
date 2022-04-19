@@ -1,0 +1,11 @@
+name: nhs_income_vs_inflation
+title:
+username:
+account: hvlabat
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 6126174
+bundleId: 5815494
+url: https://hvlabat.shinyapps.io/nhs_income_vs_inflation/
+when: 1650408413.97203
+lastSyncTime: 1650408413.97203

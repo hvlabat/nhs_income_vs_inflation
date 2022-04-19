@@ -14,13 +14,13 @@ output:
 knitr::opts_chunk$set(fig.width=12,fig.height=8,echo=TRUE,
                       warning=FALSE,message=FALSE)
 ```
-# Background
+## Background
 The medical profession in the UK revolves around the National Health Service (NHS), a world-renowned system respected for its high-quality and "free at the point of delivery" approach. Part of this system is the training of healthcare professionals, who are mandated to work in the NHS throughout their training in order to be officially recognised in their role. In this lens, however, the NHS becomes a monopsony; where a monopoly is the sole provider of a good or service, a monopsony is the sole buyer.
 
 These above facts, combined with the NHS' chronic lack of funding, has resulted in reduced salaries for all healthcare professionals working in the United Kingdom, when compared to other developed countries. Furthermore, over 2010-2015 ear, doctors in all stages of training were protesting about the inability for their salaries to match the trends in inflation, leading to effective losses in income and progressively less return for their - at the very least - decade-long investment to education.
 
 
-# Aims
+## Aims
 I wanted to find out more about the above claims, and aimed to plot the change in NHS doctor salaries versus changes in inflation. To this end, I wanted to create two main line plots to visualise:
 
 1) The cumulative money lost by doctors due to inflation
@@ -30,7 +30,7 @@ I wanted to find out more about the above claims, and aimed to plot the change i
 I thought a third, less complicated plot would be helpful in visualising the data, indicating the percentage change in inflation and salary for each month.
 
 
-# Data Origins
+## Data Origins
 For the salary data, I used the official NHS Earnings Estimates data, which I accessed from [the NHS website (click here for source).](https://web.archive.org/web/20220417162020/https://digital.nhs.uk/data-and-information/publications/statistical/nhs-staff-earnings-estimates) The exact data I used is before and including December 2021, which was the latest version at the time; this included data from September 2009 onwards.
 
 I also took data from June 2007 to Decemeber 2008, which was available in pdf format, though this did not have the same staff break-downs as the csv data so I ultimately did not use it, despite extracting the data (as seen later on). The roles I wanted information on are as follows, listed in descending seniority:
@@ -46,16 +46,22 @@ This is because these are the mandatory steps for any doctor wanting to speciali
 For the inflation data, I used the Office for National Statistics (ONS) Consumer Price Index data including owner occupiers' Housing costs (CPIH), which I accessed from [the ONS website (click here for source).](https://web.archive.org/web/20220417162131/https://www.ons.gov.uk/economy/inflationandpriceindices/bulletins/consumerpriceinflation/january2022)
 
 
-# Data-Wrangling
+## Data-Wrangling
 Having downloaded the data, I was ready to extract and process it. All the raw scripts for this are included in my 'docs' folder, and I include the important parts here.
 
-## Setting Up
-Below is the set-up needed to run all my code and visualisations.
+### Setting Up
+Below is the set-up needed to run all my code and visualisations. The libraries are stored and taken from renv, to maintain:
+
+- Isolation
+- Portability
+- Reproducibility
+
+Renv is the R Studio updated version of packrat.
 
 ```{r libraries}
-#Loading all necessary libraries. These are taken from renv, to maintain isolation, portability, and reproducibility (this is the R Studio updated version of packrat)
+#Loading necessary libraries
 
-renv::restore() #To restore libraries loaded for this project
+renv::restore() #To restore packages loaded for this project
 
 library(tidyverse) #To process and graph the data
 library(here) #To easily set the working directory
@@ -69,7 +75,7 @@ library(ggpubr) #To combine graphs together, with flexible sizes
 ```
 
 
-## PDF Data Preparation
+### PDF Data Preparation
 Before I knew the pdf data did not contain the break-downs I wanted, I wrote a script to extract the data. This is outlined below.
 
 ```{r pdf_prep, message=TRUE}
@@ -160,7 +166,7 @@ write.csv(pdf_data,here("data","refined","pdf_data.csv"))
 As is now evident, the data does not contain any information about Core Training years, making it unfit for my project. However, learning how to extract table data from a pdf was invaluable, and I am sure I will use this skill later in my career.
 
 
-## CSV Data Preparation
+### CSV Data Preparation
 Next, I extracted the data from the CSV files. This was comparatively straightforward.
 
 I wanted to extract the salary data titled "basic pay per FTE", which refers to the monthly salary of a doctor per Full Time Equivalent, implying this is what a fully working doctor at that grade would get paid, on average.
@@ -409,10 +415,10 @@ write.csv(cpih_vs_salary,here("data","refined","cpih_vs_salary.csv"))
 
 ```
 
-Each step of data-wrangling is important for the overall visualisation of the data, though I eventually opted to use only the last three steps for my graphs.
+Each step of data-wrangling is important for the overall visualisation of the data, though I eventually opted to use only the last three steps for my graphs. This is because mean data neglects the large differences between groups, and my aims are to compare groups.
 
 
-# Visualisation
+## Visualisation
 
 I opted for an interactive R Shiny application, as I believe it gives a better representation of the change over time (due to the option to animate), and lets the user tangibly interact with the data.
 
@@ -491,7 +497,7 @@ observeEvent(input$plot,{
                           "; Sep 2009 = 0"))+
       theme(plot.title=element_text(colour="#56B4E9",face="bold"),
             panel.grid.major=element_line(size=1,colour="grey85"),
-            panel.grid.minor=element_line(colour="grey90"),
+            panel.grid.minor=element_line(colour="grey87"),
             axis.title.x = element_text(vjust=-0.35),
             axis.title.y = element_text(vjust=2.5),
             legend.position="none", #remove legend, since col_plot has one already
@@ -527,7 +533,7 @@ observeEvent(input$plot,{
            fill="Group")+
       theme(plot.title=element_text(colour="#56B4E9",face="bold"),
             panel.grid.major=element_line(size=1,colour="grey85"),
-            panel.grid.minor=element_line(colour="grey90"),
+            panel.grid.minor=element_line(colour="grey87"),
             axis.ticks=element_line(size=1),
             axis.title.x = element_text(vjust=-0.35),
             axis.title.y = element_text(vjust=2.5))+
@@ -610,7 +616,7 @@ observeEvent(input$plot,{
                        expand=c(0,0))+
           labs(title="Real vs Inflation-Matched Salary",
                subtitle=paste("Range: Sep 2009 -",format(as.Date(input$date),"%b %Y"),
-                              "; - - - = Inflation-Matched, ─── = Real Salary"),
+                              "; - - - = Inflation-Matched, ── = Real Salary"),
                colour="Stage of Training")+
           theme(plot.title=element_text(colour="#56B4E9",face="bold"),
                 panel.grid.major=element_line(size=1,colour="grey85"),
@@ -674,7 +680,7 @@ All elements are made to be viewed and interacted with via a wide screen. Whilst
 This was a difficult but rewarding experience, and I truly enjoyed learning how to code the app.
 
 
-# Discussion & Interpretation
+## Discussion & Interpretation
 Looking at the *"Real vs Inflation-Matched Salary"* graph, the first thing I noticed was the dips in salary every August. In discussing with qualified physicians, I learned that this is when doctors start their new posts; evidently the NHS reduces the salary due to the fact that these doctors start on the first Wednesday and not the first day of the month, though this corrects itself by September.
 
 The second point I noticed in both graps was how the 'entrance roles' (i.e. FY1 and CT) have incomes that now match - and even exceed - inflation. However, the roles one becomes locked into (i.e. FY2, ST, and Consultancy) continue to receive changes in income that fall below the changes in inflation. It is hard to see why this would be done accidentally; this could be the NHS' way of keeping costs down whilst - on the surface - appearing to match inflation with their salaries; by the time doctors encounter the non-matched salaries, they are already locked into their training roles, and leaving would have dire consequences on their career.
@@ -684,8 +690,8 @@ On the more pleasant side, the 2016 lobbying and strikes by Junior Doctors (FY1 
 Finally, Consultants are the group most negatively affected by inflation; if a consultant received mean pay from September 2009 to December 2021, they will have lost £91,257 to inflation. This makes up over a year's salary for most consultants.
 
 
-# Possible Extensions
+## Possible Extensions
+Text
 
-
-# GitHub Repository
+## GitHub Repository
 You can find the repository for this project by [clicking here](https://github.com/hvlabat/nhs_income_vs_inflation).
