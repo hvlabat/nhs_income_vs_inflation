@@ -1,6 +1,3 @@
-# Ensure it does NOT ignore renv
-!/renv
-
 # History files
 .Rhistory
 .Rapp.history
