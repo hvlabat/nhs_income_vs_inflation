@@ -677,7 +677,7 @@ plotOutput(outputId="plot",
 
 All elements are made to be viewed and interacted with via a wide screen. Whilst they would certainly work on a mobile device, much of the data would be compressed and less aesthetically pleasing.
 
-This was a difficult but rewarding experience, and I truly enjoyed learning how to code the app.
+This was a difficult but rewarding experience, and I truly enjoyed learning how to code the app and upload it onto the shinyapps.io website.
 
 
 ## Discussion & Interpretation
