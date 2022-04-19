@@ -7,7 +7,6 @@ library(here)
 library(pdftools)
 library(data.table)
 
-
 #Creating function to extract salary data from .pdf file
 data_extract <- function(raw){
   

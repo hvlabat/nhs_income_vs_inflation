@@ -1,1 +1,22 @@
-Include explanation of the data
+This is a codebook for the data in the 'refined' folder. For codebooks regarding the raw data, please refer to the data sources (i.e., ONS & NHS)
+
+
+"date" - The date corresponding to the data, typically outlining the month that the data was collected. In some instances, a 01 is added to the date to simplify coding; this does not imply the data was collected on the first, but actually it was collected at the end
+
+"group" - The salary group that medical professionals form part of; the group of focus is Consultants, Specialist Registrars, Core Trainees, and Foundation Doctors (Years 1 & 2)
+
+"amount" - The salary of each group. The focus of this is the Mean Basic Salary per Full Time Equivalent
+
+"salary_change" - The percent that the salary has changed compared to the first date in the sequence (Sept 2009)
+
+"cpih" - The Consumer Price Index with Housing, which is an estimation of the inflation that month compared to the first date in the sequence (Sept 2009). Housing is included to give a broader estimation of how living costs change over time.
+
+"cpih_change" - The percent change of CPIH compared to the previous date in the sequence.
+
+"diff" - The difference between cpih and salary_change (salary_change-cpih). Used to indicate the effective change in salary of the staff in question.
+
+"cumulative_income_lost" - The cumulative income lost by a particular staff group since the first date in the sequence (Sept 2009). Calculated by negating the cumulative income change, which itself is found by adding the salary (starting at Sept 2009) of the doctor to that salary multiplied by the diff/100, then adding prior calculating cumulative change. The equation is made evident in the code.
+
+"cpih_matched_salary" - The salary of doctors if the changes in their salary matched the changes in inflation (CPIH). This is calculated by multiplying the starting salary (Sept 2009) [or previous year's salary, if not at start] by the change in CPIH and adding it to the starting/previous year's salary. Again, the equation is made evident in the code.
+
+"change" in col_df - Equivalent to cpih_change

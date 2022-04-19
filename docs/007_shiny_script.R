@@ -81,9 +81,9 @@ server <- function(input,output){
                         colour=group),size=1)+
           theme_light()+
           scale_y_continuous(labels=dollar_format(prefix="£"),
-                             breaks=seq(0,50000,5000),
-                             minor_breaks=seq(-2000,50000,1000),
-                             limits=c(-2000,48000),
+                             breaks=seq(0,90000,10000),
+                             minor_breaks=seq(-4000,100000,2000),
+                             limits=c(-4000,94000),
                              expand=c(0,0))+
           scale_x_date(date_breaks="1 year",
                        date_minor_breaks="3 months",
@@ -193,7 +193,7 @@ server <- function(input,output){
           scale_y_continuous(labels=dollar_format(prefix="£"),
                              breaks=seq(2000,9000,1000),
                              minor_breaks=seq(1000,10000,250),
-                             limits=c(1000,10000),
+                             limits=c(1250,9750),
                              expand=c(0,0))+
           scale_x_date(date_breaks="1 year",
                        date_minor_breaks="3 months",

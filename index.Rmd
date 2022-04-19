@@ -21,17 +21,17 @@ These above facts, combined with the NHS' chronic lack of funding, has resulted 
 
 
 # Aims
-I wanted to find out more about the above claims, and aimed to plot the change in NHS doctor salaries versus changes in inflation. To this end, I wanted to create two main plots to visualise:
+I wanted to find out more about the above claims, and aimed to plot the change in NHS doctor salaries versus changes in inflation. To this end, I wanted to create two main line plots to visualise:
 
 1) The cumulative money lost by doctors due to inflation
 
 2) The real salary of doctors versus the salary they should have if it matched changes in inflation
 
-To do this, I discovered a third, lesser plot would be helpful in visualising the change: a plot indicating the percentage change in inflation and salary for each month.
+I thought a third, less complicated plot would be helpful in visualising the data, indicating the percentage change in inflation and salary for each month.
 
 
 # Data Origins
-For the salary data, I used the official NHS Earnings Estimates data, which I accessed from [the NHS website.](https://web.archive.org/web/20220417162020/https://digital.nhs.uk/data-and-information/publications/statistical/nhs-staff-earnings-estimates) The exact data I used is before and including December 2021, which was the latest version at the time; this included data from September 2009 onwards.
+For the salary data, I used the official NHS Earnings Estimates data, which I accessed from [the NHS website (click here for source).](https://web.archive.org/web/20220417162020/https://digital.nhs.uk/data-and-information/publications/statistical/nhs-staff-earnings-estimates) The exact data I used is before and including December 2021, which was the latest version at the time; this included data from September 2009 onwards.
 
 I also took data from June 2007 to Decemeber 2008, which was available in pdf format, though this did not have the same staff break-downs as the csv data so I ultimately did not use it, despite extracting the data (as seen later on). The roles I wanted information on are as follows, listed in descending seniority:
 
@@ -43,7 +43,7 @@ I also took data from June 2007 to Decemeber 2008, which was available in pdf fo
 
 This is because these are the mandatory steps for any doctor wanting to specialise in the NHS, with the end-goal being consultancy. Including medical school, this takes a minimum of 10 years.
 
-For the inflation data, I used the Office for National Statistics (ONS) Consumer Price Index data including owner occupiers' Housing costs (CPIH), which I accessed from [the ONS website.](https://web.archive.org/web/20220417162131/https://www.ons.gov.uk/economy/inflationandpriceindices/bulletins/consumerpriceinflation/january2022)
+For the inflation data, I used the Office for National Statistics (ONS) Consumer Price Index data including owner occupiers' Housing costs (CPIH), which I accessed from [the ONS website (click here for source).](https://web.archive.org/web/20220417162131/https://www.ons.gov.uk/economy/inflationandpriceindices/bulletins/consumerpriceinflation/january2022)
 
 
 # Data-Wrangling
@@ -53,7 +53,8 @@ Having downloaded the data, I was ready to extract and process it. All the raw s
 Below is the set-up needed to run all my code and visualisations.
 
 ```{r libraries}
-#Loading all necessary libraries
+#Loading all necessary libraries. These are taken from renv, to maintain isolation, portability, and reproducibility (this is the R Studio updated version of packrat)
+
 library(tidyverse) #To process and graph the data
 library(here) #To easily set the working directory
 library(pdftools) #To extract the data from the pdf
@@ -347,22 +348,27 @@ cpih_vs_salary$diff <- cpih_vs_salary$salary_change-cpih_vs_salary$cpih
 
 
 
+#Calculating the number of rows in one group, so as to avoid hard-coding values
+#Since the number of rows is the same per group, I need only measure the first group
+group_size <- nrow(cpih_vs_salary %>% filter(group==cpih_vs_salary$group[1]))
+
+
+
 #Fourth Data-Wrangling:
 #Calculating effective money gained/lost from beginning to end of time sequence
 #For each income of each doctor group
-
-#Creating group_change to measure income lost per group, with each group being 148 long
 for (i in c(1:nrow(cpih_vs_salary))){
-  if (i==1){
-    cpih_vs_salary$cumulative_income_lost[i] <- 0 #set beginning baseline
-  }
-  else if ((i-1)%%148==0){
+  if ((i-1)%%group_size==0){
     cpih_vs_salary$cumulative_income_lost[i] <- 0 #set baseline for each group
   }
   else{
-    cpih_vs_salary$cumulative_income_lost[i] <- 
-      -((mean_income*(cpih_vs_salary$diff[i]/100))-
-      cpih_vs_salary$cumulative_income_lost[i-1])
+    for (val in c(1:5)){
+      if ((i-1)<=(val*group_size) & (i-1)%/%group_size==(val-1)){
+        cpih_vs_salary$cumulative_income_lost[i] <- 
+          -((cpih_vs_salary$amount[(group_size*(val-1))+1]*(cpih_vs_salary$diff[i]/100))-
+              cpih_vs_salary$cumulative_income_lost[i-1])
+      }
+    }
   }
 }
 
@@ -385,7 +391,7 @@ for (i in c(1:nrow(cpih_vs_salary))){
   if (i==1){
     cpih_vs_salary$cpih_matched_salary[i] <- cpih_vs_salary$amount[i] #set beginning baseline
   }
-  else if ((i-1)%%148==0){
+  else if ((i-1)%%group_size==0){
     cpih_vs_salary$cpih_matched_salary[i] <- cpih_vs_salary$amount[i] #set baseline for each group
   }
   else{
@@ -406,11 +412,11 @@ Each step of data-wrangling is important for the overall visualisation of the da
 
 # Visualisation
 
-With the data processed, I could now visualise it. I opted for an interactive R Shiny application, as I believe it gives a better representation of the change over time (due to the option to animate), and lets the user tangibly interact with the data.
+I opted for an interactive R Shiny application, as I believe it gives a better representation of the change over time (due to the option to animate), and lets the user tangibly interact with the data.
 
-I aimed to make the visualisation accessible to people with colour-blindness, and as visually simple but elegant as possible. I tried to include subtle visual indications that would help the user interact with the graph, such as thicker lines for main breaks and a neutral gray background.
+I aimed to make the visualisation accessible to people with colour-blindness, and as visually simple but elegant as possible. I tried to include subtle visual indications that would help the user interact with the graph, such as thicker lines for main breaks and a neutral grey background.
 
-As previously mentioned, I included a bonus, smaller graph to indicate the percentage change in salary and inflation, as I feel it gives the user a better intuitive grasp of the data; it allowed me to understand why the reasons behind the trends seen in the line graphs.
+As previously mentioned, I included a bonus, smaller graph to indicate the percentage change in salary and inflation, as I feel it gives the user a better intuitive grasp of the data; it helped me understand the reasons behind the trends seen in the line graphs.
 
 ```{r shiny_app, message=TRUE,results="hide"}
 #Creating df with columns for change, date, and groups only, adding cpih to 'group' column
@@ -418,7 +424,7 @@ col_df <- data.frame(cpih_vs_salary$date,cpih_vs_salary$group,cpih_vs_salary$sal
 colnames(col_df) <- c("date","group","change")
 
 temp_cpih_df <- data.frame(cpih_vs_salary$date,cpih_vs_salary$cpih)
-temp_cpih_df <- temp_cpih_df[c(1:148),]
+temp_cpih_df <- temp_cpih_df[c(1:group_size),]
 temp_cpih_df$group <- "CPIH"
 temp_cpih_df <- temp_cpih_df[,c(1,3,2)]
 colnames(temp_cpih_df) <- c("date","group","change")
@@ -432,8 +438,8 @@ col_df <- rbind(col_df,temp_cpih_df)
 #Selector of dates to display
 sliderTextInput(inputId="date",
                 label="Select Date:",
-                choices=as.Date(col_df$date[c(1:148)]), #list of months
-                selected=as.Date(col_df$date[148]),
+                choices=as.Date(col_df$date[c(1:group_size)]), #list of months
+                selected=as.Date(col_df$date[group_size]),
                 grid=TRUE,
                 animate=animationOptions(interval=800),
                 width="100%"
@@ -469,9 +475,9 @@ observeEvent(input$plot,{
                 size=1)+
       theme_light()+
       scale_y_continuous(labels=dollar_format(prefix="£"),
-                         breaks=seq(0,50000,5000),
-                         minor_breaks=seq(-2000,50000,1000),
-                         limits=c(-2000,48000),
+                         breaks=seq(0,90000,10000),
+                         minor_breaks=seq(-4000,100000,2000),
+                         limits=c(-4000,94000),
                          expand=c(0,0))+
       scale_x_date(date_breaks="1 year",
                    date_minor_breaks="3 months",
@@ -526,8 +532,8 @@ observeEvent(input$plot,{
       xlab("Group")+
       ylab("Percentage Change")+
       scale_x_discrete(labels=c("CCT","ST","CT","FY2","FY1","CPIH"))+
-      scale_y_continuous(limits=c(-8,38),
-                         breaks=seq(-5,35,5),
+      scale_y_continuous(limits=c(-5,38),
+                         breaks=seq(0,35,5),
                          minor_breaks=seq(-8,38,1),
                          expand=c(0,0))
     
@@ -543,7 +549,7 @@ observeEvent(input$plot,{
       #Plotting monthly % changes in salary and inflation, using col_df & geom_col
       col_plot <- ggplot()+
         geom_col(data=col_df %>% filter(date==input$date),
-        aes(x=group,y=change,fill=group,label=change))+
+        aes(x=group,y=change,fill=group))+
         scale_fill_manual(values=c("#E69F00",
                                    "#56B4E9",
                                    "#009E73",
@@ -570,8 +576,8 @@ observeEvent(input$plot,{
         xlab("Group")+
         ylab("Percentage Change")+
         scale_x_discrete(labels=c("CCT","ST","CT","FY2","FY1","CPIH"))+
-        scale_y_continuous(limits=c(-8,38),
-                           breaks=seq(-5,35,5),
+        scale_y_continuous(limits=c(-5,38),
+                           breaks=seq(0,35,5),
                            minor_breaks=seq(-8,38,1),
                            expand=c(0,0))
         
@@ -592,8 +598,8 @@ observeEvent(input$plot,{
           theme_light()+
           scale_y_continuous(labels=dollar_format(prefix="£"),
                              breaks=seq(2000,9000,1000),
-                             minor_breaks=seq(1000,10000,250),
-                             limits=c(1000,10000),
+                             minor_breaks=seq(1000,10000,200),
+                             limits=c(1400,9800),
                              expand=c(0,0))+
           scale_x_date(date_breaks="1 year",
                        date_minor_breaks="3 months",
@@ -629,17 +635,17 @@ observeEvent(input$plot,{
 
 #Main output
 plotOutput(outputId="plot")
-  
+
 ```
 
-The above code provides the following graphs of data from September 2009 to December 2021:
+The above code provides the following visualisation of data from September 2009 to December 2021:
 
 ```{r interactive_graph,echo=FALSE}
 #Selector of dates to display
 sliderTextInput(inputId="date",
                 label="Select Date:",
-                choices=as.Date(col_df$date[c(1:148)]), #list of months
-                selected=as.Date(col_df$date[148]),
+                choices=as.Date(col_df$date[c(1:group_size)]), #list of months
+                selected=as.Date(col_df$date[group_size]),
                 grid=TRUE,
                 animate=animationOptions(interval=800),
                 width="100%",
@@ -659,17 +665,25 @@ plotOutput(outputId="plot",
 
 ```
 
+**The above interactive plot is the main visualisation of my project**
 
 All elements are made to be viewed and interacted with via a wide screen. Whilst they would certainly work on a mobile device, much of the data would be compressed and less aesthetically pleasing.
 
 This was a difficult but rewarding experience, and I truly enjoyed learning how to code the app.
 
 
-# Discussion
-Looking at the two main graphs, the first thing I noticed was the dips in salary every August. In discussing with qualified physicians, I learned that this is when doctors start their new posts; evidently the NHS deems them less needing of a full salary, though this corrects itself by September.
+# Discussion & Interpretation
+Looking at the *"Real vs Inflation-Matched Salary"* graph, the first thing I noticed was the dips in salary every August. In discussing with qualified physicians, I learned that this is when doctors start their new posts; evidently the NHS reduces the salary due to the fact that these doctors start on the first Wednesday and not the first day of the month, though this corrects itself by September.
 
-The second point I noticed was how the 'entrance roles' (i.e. FY1 and CT) have incomes that now match inflation, but the roles one becomes locked into (i.e. FY2, ST, and Consultancy) continue to receive changes in income that fall below the changes in inflation. It is hard to see why this would be done accidentally; this could be the NHS' way of keeping costs down whilst - on the surface - appearing to match inflation with their salaries. By the time doctors encounter the non-matched salaries, they are already locked into their training roles, and leaving would have dire consequences on their professional life.
+The second point I noticed in both graps was how the 'entrance roles' (i.e. FY1 and CT) have incomes that now match - and even exceed - inflation. However, the roles one becomes locked into (i.e. FY2, ST, and Consultancy) continue to receive changes in income that fall below the changes in inflation. It is hard to see why this would be done accidentally; this could be the NHS' way of keeping costs down whilst - on the surface - appearing to match inflation with their salaries; by the time doctors encounter the non-matched salaries, they are already locked into their training roles, and leaving would have dire consequences on their career.
+
+On the more pleasant side, the 2016 lobbying and strikes by Junior Doctors (FY1 & FY2) seems to have partially worked in improving their pay, as evidenced by the reversal of the *"Cumulative Salary Lost to Inflation"* line for FY1 doctors.
+
+Finally, Consultants are the group most negatively affected by inflation; if a consultant received mean pay from September 2009 to December 2021, they will have lost £91,257 to inflation. This makes up over a year's salary for most consultants.
+
 
 # Possible Extensions
 
+
+# GitHub Repository
 You can find the repository for this project by [clicking here](https://github.com/hvlabat/nhs_income_vs_inflation).

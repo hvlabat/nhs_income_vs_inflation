@@ -111,21 +111,21 @@ p_diff+geom_line()+geom_smooth(method="gam")
 #Fourth Data-Wrangling & Visualisation:
 #Calculating effective money gained/lost from beginning to end of time sequence
 #For each income of each doctor group
-
-#Creating group_change to measure income lost per group, with each group being 148 long
 for (i in c(1:nrow(cpih_vs_salary))){
-  if (i==1){
-    cpih_vs_salary$cumulative_income_lost[i] <- 0 #set beginning baseline
-  }
-  else if ((i-1)%%148==0){
+  if ((i-1)%%148==0){
     cpih_vs_salary$cumulative_income_lost[i] <- 0 #set baseline for each group
   }
   else{
-    cpih_vs_salary$cumulative_income_lost[i] <- 
-      -((mean_income*(cpih_vs_salary$diff[i]/100))-
-      cpih_vs_salary$cumulative_income_lost[i-1])
+    for (val in c(1:5)){
+      if ((i-1)<=(val*148) & (i-1)%/%148==(val-1)){
+        cpih_vs_salary$cumulative_income_lost[i] <- 
+          -((cpih_vs_salary$amount[(148*(val-1))+1]*(cpih_vs_salary$diff[i]/100))-
+              cpih_vs_salary$cumulative_income_lost[i-1])
+      }
+    }
   }
 }
+
 
 #Ordering the 'group' column in order of descending seniority (consultant->fy1)
 cpih_vs_salary$group <- factor(cpih_vs_salary$group,
@@ -145,9 +145,9 @@ p_group_cumulative+
   geom_line(size=1)+
   theme_light()+
   scale_y_continuous(labels=dollar_format(prefix="£"),
-                     breaks=seq(0,50000,5000),
-                     minor_breaks=seq(-2000,50000,1000),
-                     limits=c(-2000,48000),
+                     breaks=seq(0,90000,10000),
+                     minor_breaks=seq(-2000,100000,2000),
+                     limits=c(-2000,94000),
                      expand=c(0,0))+
   scale_x_date(date_breaks="1 year",
                date_minor_breaks="3 months",
