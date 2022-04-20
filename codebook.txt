@@ -20,3 +20,7 @@ This is a codebook for the data in the 'refined' folder. For codebooks regarding
 "cpih_matched_salary" - The salary of doctors if the changes in their salary matched the changes in inflation (CPIH). This is calculated by multiplying the starting salary (Sept 2009) [or previous year's salary, if not at start] by the change in CPIH and adding it to the starting/previous year's salary. Again, the equation is made evident in the code.
 
 "change" in col_df - Equivalent to cpih_change
+
+"mean_salary_change" - The percentage change of the mean salary, as compared to the baseline (Sept 2009)
+
+"median_salary" - The median salary per FTE extracted from the pdf files. This measure was not accessible in the csv files, and so was exchanged for mean salary, which is recorded as "amount"
