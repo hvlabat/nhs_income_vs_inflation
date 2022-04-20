@@ -17,13 +17,15 @@ knitr::opts_chunk$set(echo=TRUE,warning=FALSE,message=FALSE)
 
 ```
 ## Background
+
 The medical profession in the UK revolves around the National Health Service (NHS), a world-renowned system respected for its high-quality and "free at the point of delivery" approach. Part of this system is the training of healthcare professionals, who are mandated to work in the NHS throughout their training in order to be officially recognised in their role. In this lens, however, the NHS becomes a monopsony; where a monopoly is the sole provider of a good or service, a monopsony is the sole buyer.
 
-These above facts, combined with the NHS' chronic lack of funding, has resulted in reduced salaries for all healthcare professionals working in the United Kingdom, when compared to other developed countries. Furthermore, over 2010-2015 ear, doctors in all stages of training were protesting about the inability for their salaries to match the trends in inflation, leading to effective losses in income and progressively less return for their - at the very least - decade-long investment to education.
+These above facts, combined with the NHS' chronic lack of funding, has resulted in reduced salaries for all healthcare professionals working in the United Kingdom, when compared to other developed countries. Furthermore, during 2016 junior doctors (FY1 and FY2) held industrial action about the inability for their salaries to match the trends in inflation, as well as the excessive workload they were expected to work under. The income-inflation imbalance lead to effective losses in income and progressively less returns for their almost decade-long investment to education. This protest has had a resurgence, lately, and I was curious to find out why, and if their protests had any effect.
 
 
 ## Aims
-I wanted to find out more about the above claims, and aimed to plot the change in NHS doctor salaries versus changes in inflation. To this end, I wanted to create two main line plots to visualise:
+
+I wanted to find out more about the above claims and effects, and aimed to plot the change in NHS doctor salaries versus changes in inflation. To this end, I wanted to create two main line plots to visualise:
 
 1) The cumulative money lost by doctors due to inflation
 
@@ -33,6 +35,7 @@ I thought a third, less complicated plot would be helpful in visualising the dat
 
 
 ## Data Origins
+
 For the salary data, I used the official NHS Earnings Estimates data, which I accessed from [the NHS website (click here for source).](https://web.archive.org/web/20220417162020/https://digital.nhs.uk/data-and-information/publications/statistical/nhs-staff-earnings-estimates) The exact data I used is before and including December 2021, which was the latest version at the time; this included data from September 2009 onwards.
 
 I also took data from June 2007 to December 2008, which was available in pdf format, though this did not have the same staff break-downs as the csv data so I ultimately did not use it, despite extracting the data (as seen later on). The roles I wanted information on are as follows, listed in descending seniority:
@@ -49,9 +52,12 @@ For the inflation data, I used the Office for National Statistics (ONS) Consumer
 
 
 ## Data-Wrangling
+
 Having downloaded the data, I was ready to extract and process it. All the raw scripts for this are included in my 'docs' folder, and I include the important parts here.
 
+
 ### Setting Up
+
 Below is the set-up needed to run all my code and visualisations. The libraries are stored and taken from renv, to maintain:
 
 - Isolation
@@ -78,6 +84,7 @@ library(ggpubr) #To combine graphs together, with flexible sizes
 
 
 ### PDF Data Preparation
+
 Before I knew the pdf data did not contain the break-downs I wanted, I wrote a script to extract the data. This is outlined below.
 
 ```{r pdf_prep, message=TRUE}
@@ -682,7 +689,14 @@ All elements are made to be viewed and interacted with via a wide screen. Whilst
 This was a difficult but rewarding experience, and I truly enjoyed learning how to code the app and upload it onto the shinyapps.io website.
 
 
-## Discussion & Interpretation
+## Interpretation
+
+In the *"Cumulative Salary Lost to Inflation"* graph, any gradient above zero indicates an increase in money lost to inflation. The graph provides further intuition by showing the overall trend, and it can be seen that only two groups (FY1 and CT) are getting paid better than inflation. The worst affected group by far are the Consultants.
+
+In the *"Real vs Inflation-Matched Salary"* graph, it can be seen how the CT group is the only group with income that substantially improves compared to inflation, from mid 2019 onwards. FY1s are being paid enough to match inflation, and have been since 2017. Every other group has a marked difference in what they are getting paid versus what they should be paid if pay matched inflation.
+
+
+## Discussion
 
 Looking at the *"Real vs Inflation-Matched Salary"* graph, the first thing I noticed was the dips in salary every August. In discussing with qualified physicians, I learned that this is when doctors start their new posts; evidently the NHS reduces the salary due to the fact that these doctors start on the first Wednesday and not the first day of the month, though this corrects itself by September.
 
@@ -706,6 +720,6 @@ From this visualisation, I envision four additional projects that could compleme
 **4) Investigating other government and private bodies to see if they also show a marked drop in salary during the influx of new employees.** Such a trend would be useful to those potential new employees, and would be the grounds for further investigation into how payment differs depending on if you are a new employee or not (i.e., do you get the drop, even if you aren't a new employee?).
 
 
-### GitHub Repository
+## GitHub Repository
 
 You can find the repository for this project by [clicking here](https://github.com/hvlabat/nhs_income_vs_inflation).

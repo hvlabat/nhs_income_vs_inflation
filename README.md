@@ -38,9 +38,7 @@ This project was coded using R. This project contains the following files and fo
 
 **".Rprofile"** - USed to  set options and environment variables, set-up by renv to maintain version control
 
-**"codebook.txt"** - File describing the nature of the data found in the **"refined"**" data folder of this project.
-
-**"data"** - Contains the **"raw"**" data used in this project, the source of which is outlined above. The **"refined"**" data folder contains the processed data from this project, described below.
+**"data"** - Contains the **"raw"**" data used in this project, the source of which is outlined above. The **"refined"**" data folder contains the processed data from this project, described below, and a **"codebook.txt"** describing the nature of the each data vector.
 
 **"docs"** - Contains the scripts used to test the code used in the **"index.Rmd"** file. The file **"007_shiny_script.R"** is the test-code for the main visualisation of this project. However, the main visualisation itself is found in the index file, outlined beflow.
 
