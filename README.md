@@ -36,13 +36,15 @@ This project was coded using R. This project contains the following files and fo
 
 **".Rhistory"** - Contains a history of the commands entered, generally unimportant.
 
+**".Rprofile"** - USed to  set options and environment variables, set-up by renv to maintain version control
+
 **"codebook.txt"** - File describing the nature of the data found in the **"refined"**" data folder of this project.
 
 **"data"** - Contains the **"raw"**" data used in this project, the source of which is outlined above. The **"refined"**" data folder contains the processed data from this project, described below.
 
 **"docs"** - Contains the scripts used to test the code used in the **"index.Rmd"** file. The file **"007_shiny_script.R"** is the test-code for the main visualisation of this project. However, the main visualisation itself is found in the index file, outlined beflow.
 
-**"index.Rmd" / "index.html"** - The R Markdown file intended to be marked for the assessment of this module. **This contains the main visualisation of the project.**
+**"index.Rmd"** - The R Markdown file intended to be marked for the assessment of this module. *This contains the main visualisation of the project.*
 
 **"nhs_income_vs_inflation.Rproj"** - The R Project file of this project. Must be run if the scripts in **"docs"** are to work correctly.
 
@@ -50,8 +52,9 @@ This project was coded using R. This project contains the following files and fo
 
 **"renv"** - A package-management system, used to ensure the isolation, portability, and reproducibility of this project. This is the R Studio updated version of packrat.
 
-**"renv.lock"** - Contains data on the packages stored in renv
+**"renv.lock"** - Contains data on the packages stored in renv. Open this in rstudio to view the packages.
 
+**"rsconnect"** - Created by rsconnect to host the shinyapp.io website
 
 
 ## Instructions

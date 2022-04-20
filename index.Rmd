@@ -5,14 +5,16 @@ date: "`r Sys.Date()`"
 runtime: shiny
 output:
   html_document:
+    code_folding: show
     theme: flatly
     highlight: pygments
 ---
 ```{r global-options, include=FALSE}
-#This sets a few defaults for this entire markdown, to make it visually constant
+#This sets a few defaults for this entire markdown, to make it visually consistent
 #and to prevent messages and warnings without retyping the command.
-knitr::opts_chunk$set(fig.width=12,fig.height=8,echo=TRUE,
-                      warning=FALSE,message=FALSE)
+
+knitr::opts_chunk$set(echo=TRUE,warning=FALSE,message=FALSE)
+
 ```
 ## Background
 The medical profession in the UK revolves around the National Health Service (NHS), a world-renowned system respected for its high-quality and "free at the point of delivery" approach. Part of this system is the training of healthcare professionals, who are mandated to work in the NHS throughout their training in order to be officially recognised in their role. In this lens, however, the NHS becomes a monopsony; where a monopoly is the sole provider of a good or service, a monopsony is the sole buyer.
@@ -33,7 +35,7 @@ I thought a third, less complicated plot would be helpful in visualising the dat
 ## Data Origins
 For the salary data, I used the official NHS Earnings Estimates data, which I accessed from [the NHS website (click here for source).](https://web.archive.org/web/20220417162020/https://digital.nhs.uk/data-and-information/publications/statistical/nhs-staff-earnings-estimates) The exact data I used is before and including December 2021, which was the latest version at the time; this included data from September 2009 onwards.
 
-I also took data from June 2007 to Decemeber 2008, which was available in pdf format, though this did not have the same staff break-downs as the csv data so I ultimately did not use it, despite extracting the data (as seen later on). The roles I wanted information on are as follows, listed in descending seniority:
+I also took data from June 2007 to December 2008, which was available in pdf format, though this did not have the same staff break-downs as the csv data so I ultimately did not use it, despite extracting the data (as seen later on). The roles I wanted information on are as follows, listed in descending seniority:
 
 - Consultant
 - Specialist Registrar (ST)
@@ -56,7 +58,7 @@ Below is the set-up needed to run all my code and visualisations. The libraries 
 - Portability
 - Reproducibility
 
-Renv is the R Studio updated version of packrat.
+Renv is the R Studio updated version of packrat, and renv.lock can be opened in RStudio to view the versions and packages.
 
 ```{r libraries}
 #Loading necessary libraries
@@ -415,7 +417,7 @@ write.csv(cpih_vs_salary,here("data","refined","cpih_vs_salary.csv"))
 
 ```
 
-Each step of data-wrangling is important for the overall visualisation of the data, though I eventually opted to use only the last three steps for my graphs. This is because mean data neglects the large differences between groups, and my aims are to compare groups.
+Each step of data-wrangling is important for the overall visualisation of the data, though I eventually opted to use only the last three steps for my graphs. This is because mean data neglects the large differences between groups, and my aims are to compare groups. In the **"docs"** folder, my scripts produce graphs for each step of data-wrangling, though my final visualisation is below.
 
 
 ## Visualisation
@@ -681,6 +683,7 @@ This was a difficult but rewarding experience, and I truly enjoyed learning how 
 
 
 ## Discussion & Interpretation
+
 Looking at the *"Real vs Inflation-Matched Salary"* graph, the first thing I noticed was the dips in salary every August. In discussing with qualified physicians, I learned that this is when doctors start their new posts; evidently the NHS reduces the salary due to the fact that these doctors start on the first Wednesday and not the first day of the month, though this corrects itself by September.
 
 The second point I noticed in both graps was how the 'entrance roles' (i.e. FY1 and CT) have incomes that now match - and even exceed - inflation. However, the roles one becomes locked into (i.e. FY2, ST, and Consultancy) continue to receive changes in income that fall below the changes in inflation. It is hard to see why this would be done accidentally; this could be the NHS' way of keeping costs down whilst - on the surface - appearing to match inflation with their salaries; by the time doctors encounter the non-matched salaries, they are already locked into their training roles, and leaving would have dire consequences on their career.
@@ -691,7 +694,18 @@ Finally, Consultants are the group most negatively affected by inflation; if a c
 
 
 ## Possible Extensions
-Text
 
-## GitHub Repository
+From this visualisation, I envision four additional projects that could complement it:
+
+**1) Creating a function that automatically extracts the desired data (specified above), adjusts it according to the function inputs, and outputs a Shiny App.** This is already almost done, and requires only a few changes to the above scripts to achieve (i.e. flexibility of data inputs and graph limits). This function could be applied to a script that automatically downloads the relevant data files, providing a live visualisation of the latest inflation and salary data.
+
+**2) Comparing the salary vs inflation data of the UK to other countries around the world.** This may require one to use the mean data extracted in the first and second data-wrangling sections, and a few adjustments to ensure the data being compared is equal (e.g., accounting for different working hours).
+
+**3) Delving into why the NHS caused the three large peaks and troughs in salary from 2019 to 2021.** Whilst this trend was noticed for most August dates (especially in the *Real vs Inflation-Matched graph*), it would be interesting to see a more detailed breakdown of salaries to see what part of their salary dropped (i.e., was it fewer bonuses because the new staff don't work until a few days in?).
+
+**4) Investigating other government and private bodies to see if they also show a marked drop in salary during the influx of new employees.** Such a trend would be useful to those potential new employees, and would be the grounds for further investigation into how payment differs depending on if you are a new employee or not (i.e., do you get the drop, even if you aren't a new employee?).
+
+
+### GitHub Repository
+
 You can find the repository for this project by [clicking here](https://github.com/hvlabat/nhs_income_vs_inflation).
