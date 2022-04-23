@@ -87,7 +87,7 @@ library(ggpubr) #To combine graphs together, with flexible sizes
 
 Before I knew the pdf data did not contain the break-downs I wanted, I wrote a script to extract the data. This is outlined below.
 
-```{r pdf_prep, message=TRUE}
+```{r pdf_prep}
 #Creating function to extract salary data from .pdf file
 data_extract <- function(raw){
   
@@ -180,7 +180,7 @@ Next, I extracted the data from the CSV files. This was comparatively straightfo
 
 I wanted to extract the salary data titled "basic pay per FTE", which refers to the monthly salary of a doctor per Full Time Equivalent, implying this is what a fully working doctor at that grade would get paid, on average.
 
-```{r csv_salary_prep, message=TRUE}
+```{r csv_salary_prep}
 #Extracting data into data frame
 salary_df <- read_csv(here("data","raw","csv","2010-08-2021-12.csv"))
 
@@ -247,7 +247,7 @@ write.csv(mean_salary_change_df,here("data","refined","mean_salary_change.csv"))
 
 The CPIH data I extracted is the total CPIH, without the breakdowns:
 
-```{r csv_inflation_prep, message=TRUE}
+```{r csv_inflation_prep}
 #Extracting data into data frame
 cpih_df <- read_csv(here("data","raw","csv","cpih01-time-series-v20.csv"))
 
@@ -302,7 +302,7 @@ write.csv(cpih_df,here("data","refined","cpih_data.csv"))
 
 With both sets of data extracted and made code-friendly, I was ready to combine them and create graphs:
 
-```{r income_vs_inflation,message=TRUE}
+```{r income_vs_inflation}
 #Reformatting cpih so that the index starts at 0, to match salary change dfs
 cpih_df$cpih <- cpih_df$cpih-100
 
@@ -435,7 +435,7 @@ I aimed to make the visualisation accessible to people with colour-blindness, an
 
 As previously mentioned, I included a bonus, smaller graph to indicate the percentage change in salary and inflation, as I feel it gives the user a better intuitive grasp of the data; it helped me understand the reasons behind the trends seen in the line graphs.
 
-```{r shiny_app, message=TRUE,results="hide"}
+```{r shiny_app,results="hide"}
 #Creating df with columns for change, date, and groups only, adding cpih to 'group' column
 col_df <- data.frame(cpih_vs_salary$date,cpih_vs_salary$group,cpih_vs_salary$salary_change)
 colnames(col_df) <- c("date","group","change")
