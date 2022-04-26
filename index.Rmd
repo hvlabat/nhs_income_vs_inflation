@@ -1,7 +1,7 @@
 ---
 title: "NHS Doctor Income vs Inflation Project"
 author: "Hugo Labat"
-date: "`r Sys.Date()`"
+date: "2022-04-20"
 runtime: shiny
 output:
   html_document:
@@ -9,6 +9,7 @@ output:
     theme: flatly
     highlight: pygments
 ---
+
 ```{r global-options, include=FALSE}
 #This sets a few defaults for this entire markdown, to make it visually consistent
 #and to prevent messages and warnings without retyping the command.
@@ -16,23 +17,22 @@ output:
 knitr::opts_chunk$set(echo=TRUE,warning=FALSE,message=FALSE)
 
 ```
+
 ## Background
 
-The medical profession in the UK revolves around the National Health Service (NHS), a world-renowned system respected for its high-quality and "free at the point of delivery" approach. Part of this system is the training of healthcare professionals, who are mandated to work in the NHS throughout their training in order to be officially recognised in their role. In this lens, however, the NHS becomes a monopsony; where a monopoly is the sole provider of a good or service, a monopsony is the sole buyer.
+The medical profession in the UK revolves around the National Health Service (NHS), a world-renowned system lauded for its high-quality service and "free at the point of delivery" approach. Part of this system is the education of healthcare professionals, who are mandated to work in the NHS throughout their training in order to be officially recognised in their role. However, in this regard the NHS is a monopsony; where a monopoly is the sole provider of a good or service - and thus the determiner of selling price - a monopsony is the sole buyer - and thus the determiner of buying price. These above facts, combined with the NHS' chronic underfunding, purportedly results in reduced salaries for healthcare professionals working in the United Kingdom in order to maintain the free provision of NHS services, along with salaries that do not change to match inflation.
 
-These above facts, combined with the NHS' chronic lack of funding, has resulted in reduced salaries for all healthcare professionals working in the United Kingdom, when compared to other developed countries. Furthermore, during 2016 junior doctors (FY1 and FY2) held industrial action about the inability for their salaries to match the trends in inflation, as well as the excessive workload they were expected to work under. The income-inflation imbalance lead to effective losses in income and progressively less returns for their almost decade-long investment to education. This protest has had a resurgence, lately, and I was curious to find out why, and if their protests had any effect.
-
+In line with this logic, in 2016 junior doctors (FY1 and FY2) held industrial action to protest the excessive workload they were expected to work under, as well as the inability for their salaries to match the trends in inflation. This protest has had a resurgence, lately, and I was curious to find out why, and if their previous protests had any effect.
 
 ## Aims
 
 I wanted to find out more about the above claims and effects, and aimed to plot the change in NHS doctor salaries versus changes in inflation. To this end, I wanted to create two main line plots to visualise:
 
-1) The cumulative money lost by doctors due to inflation
+1)  The cumulative money lost by doctors due to inflation
 
-2) The real salary of doctors versus the salary they should have if it matched changes in inflation
+2)  The real salary of doctors versus the salary they should have if it matched changes in inflation
 
 I thought a third, less complicated plot would be helpful in visualising the data, indicating the percentage change in inflation and salary for each month.
-
 
 ## Data Origins
 
@@ -40,29 +40,27 @@ For the salary data, I used the official NHS Earnings Estimates data, which I ac
 
 I also took data from June 2007 to December 2008, which was available in pdf format, though this did not have the same staff break-downs as the csv data so I ultimately did not use it, despite extracting the data (as seen later on). The roles I wanted information on are as follows, listed in descending seniority:
 
-- Consultant
-- Specialist Registrar (ST)
-- Core Trainee (CT)
-- Foundation Doctor Year 2 (FY2)
-- Foundation Doctor Year 1 (FY1)
+-   Consultant
+-   Specialist Registrar (ST)
+-   Core Trainee (CT)
+-   Foundation Doctor Year 2 (FY2)
+-   Foundation Doctor Year 1 (FY1)
 
 This is because these are the mandatory steps for any doctor wanting to specialise in the NHS, with the end-goal being consultancy. Including medical school, this takes a minimum of 10 years.
 
 For the inflation data, I used the Office for National Statistics (ONS) Consumer Price Index data including owner occupiers' Housing costs (CPIH), which I accessed from [the ONS website (click here for source).](https://web.archive.org/web/20220417162131/https://www.ons.gov.uk/economy/inflationandpriceindices/bulletins/consumerpriceinflation/january2022)
 
-
 ## Data-Wrangling
 
 Having downloaded the data, I was ready to extract and process it. All the raw scripts for this are included in my 'docs' folder, and I include the important parts here.
-
 
 ### Setting Up
 
 Below is the set-up needed to run all my code and visualisations. The libraries are stored and taken from renv, to maintain:
 
-- Isolation
-- Portability
-- Reproducibility
+-   Isolation
+-   Portability
+-   Reproducibility
 
 Renv is the R Studio updated version of packrat, and renv.lock can be opened in RStudio to view the versions and packages.
 
@@ -81,7 +79,6 @@ library(shinyWidgets) #To create nicer interactive graphs
 library(ggpubr) #To combine graphs together, with flexible sizes
 
 ```
-
 
 ### PDF Data Preparation
 
@@ -171,11 +168,10 @@ pdf_data <- pdf_data[order(pdf_data$date),]
 write.csv(pdf_data,here("data","refined","pdf_data.csv"))
 ```
 
-
 As is now evident, the data does not contain any information about Core Training years, making it unfit for my project. However, learning how to extract table data from a pdf was invaluable, and I am sure I will use this skill later in my career.
 
-
 ### CSV Data Preparation
+
 Next, I extracted the data from the CSV files. This was comparatively straightforward.
 
 I wanted to extract the salary data titled "basic pay per FTE", which refers to the monthly salary of a doctor per Full Time Equivalent, implying this is what a fully working doctor at that grade would get paid, on average.
@@ -425,7 +421,6 @@ write.csv(cpih_vs_salary,here("data","refined","cpih_vs_salary.csv"))
 ```
 
 Each step of data-wrangling is important for the overall visualisation of the data, though I eventually opted to use only the last three steps for my graphs. This is because mean data neglects the large differences between groups, and my aims are to compare groups. In the **"docs"** folder, my scripts produce graphs for each step of data-wrangling, though my final visualisation is below.
-
 
 ## Visualisation
 
@@ -688,13 +683,11 @@ All elements are made to be viewed and interacted with via a wide screen. Whilst
 
 This was a difficult but rewarding experience, and I truly enjoyed learning how to code the app and upload it onto the shinyapps.io website.
 
-
 ## Interpretation
 
 In the *"Cumulative Salary Lost to Inflation"* graph, any gradient above zero indicates an increase in money lost to inflation. The graph provides further intuition by showing the overall trend, and it can be seen that only two groups (FY1 and CT) are getting paid better than inflation. The worst affected group by far are the Consultants.
 
 In the *"Real vs Inflation-Matched Salary"* graph, it can be seen how the CT group is the only group with income that substantially improves compared to inflation, from mid 2019 onwards. FY1s are being paid enough to match inflation, and have been since 2017. Every other group has a marked difference in what they are getting paid versus what they should be paid if pay matched inflation.
-
 
 ## Discussion
 
@@ -706,19 +699,17 @@ On the more pleasant side, the 2016 lobbying and strikes by Junior Doctors (FY1 
 
 Finally, Consultants are the group most negatively affected by inflation; if a consultant received mean pay from September 2009 to December 2021, they will have lost £91,257 to inflation. This makes up over a year's salary for most consultants.
 
-
 ## Possible Extensions
 
 From this visualisation, I envision four additional projects that could complement it:
 
-**1) Creating a function that automatically extracts the desired data (specified above), adjusts it according to the function inputs, and outputs a Shiny App.** This is already almost done, and requires only a few changes to the above scripts to achieve (i.e. flexibility of data inputs and graph limits). This function could be applied to a script that automatically downloads the relevant data files, providing a live visualisation of the latest inflation and salary data.
+**1) Creating a function that automatically extracts and plots the most up-to-date versions of the desired data (specified above), providing the output as a Shiny App.** This is already almost done, and requires only a few changes to the above scripts to achieve (i.e. flexibility of data inputs and graph limits). This function could be applied to a script that automatically downloads the relevant data files, providing a live visualisation of the latest inflation and salary data.
 
 **2) Comparing the salary vs inflation data of the UK to other countries around the world.** This may require one to use the mean data extracted in the first and second data-wrangling sections, and a few adjustments to ensure the data being compared is equal (e.g., accounting for different working hours).
 
 **3) Delving into why the NHS caused the three large peaks and troughs in salary from 2019 to 2021.** Whilst this trend was noticed for most August dates (especially in the *Real vs Inflation-Matched graph*), it would be interesting to see a more detailed breakdown of salaries to see what part of their salary dropped (i.e., was it fewer bonuses because the new staff don't work until a few days in?).
 
 **4) Investigating other government and private bodies to see if they also show a marked drop in salary during the influx of new employees.** Such a trend would be useful to those potential new employees, and would be the grounds for further investigation into how payment differs depending on if you are a new employee or not (i.e., do you get the drop, even if you aren't a new employee?).
-
 
 ## GitHub Repository
 
